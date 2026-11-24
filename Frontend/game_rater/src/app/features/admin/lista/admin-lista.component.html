@@ -1,0 +1,78 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Gerenciar jogos</h1>
+      <p class="sub">Todos os jogos cadastrados, publicados ou não.</p>
+    </div>
+    <a class="btn primary" routerLink="/admin/jogos/novo">+ Novo jogo</a>
+  </div>
+
+  <div class="toolbar">
+    <input class="input busca" type="search" placeholder="Buscar…" aria-label="Buscar"
+           [value]="busca()" (input)="busca.set($any($event.target).value)" />
+    <select class="select" aria-label="Status" [value]="filtroStatus()" (change)="filtroStatus.set($any($event.target).value)">
+      <option value="">Todos os status</option>
+      @for (s of status; track s.valor) { <option [value]="s.valor">{{ s.rotulo }}</option> }
+    </select>
+    <select class="select" aria-label="Publicação" [value]="filtroPublicacao()"
+            (change)="filtroPublicacao.set($any($event.target).value)">
+      <option value="">Publicadas e rascunhos</option>
+      <option value="publicadas">Só publicadas</option>
+      <option value="rascunhos">Só rascunhos</option>
+    </select>
+  </div>
+
+  @if (jogos() === null) {
+    <div class="muted">Carregando…</div>
+  } @else if (!filtrados().length) {
+    <div class="empty">
+      <p>Nenhum jogo encontrado.</p>
+      <a class="btn primary" routerLink="/admin/jogos/novo">Cadastrar jogo</a>
+    </div>
+  } @else {
+    <div class="tabela-wrap card">
+      <table>
+        <thead>
+          <tr>
+            <th>Jogo</th>
+            <th>Status</th>
+            <th class="num">Nota</th>
+            <th>Publicação</th>
+            <th>Atualizado</th>
+            <th><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (j of filtrados(); track j.id) {
+            <tr>
+              <td>
+                <div class="jogo">
+                  @if (j.capaUrl) { <img [src]="j.capaUrl | imgUrl" alt="" /> } @else { <span class="sem"></span> }
+                  <div>
+                    <a class="nome" [routerLink]="['/admin/jogos', j.id, 'editar']">{{ j.nome }}</a>
+                    <div class="muted small">{{ j.plataforma ?? '—' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><app-status-badge [status]="j.status" /></td>
+              <td class="num">
+                @if (j.notaFinal != null) {
+                  <span class="nota" [style.background]="j.cor">{{ j.notaFinal }}</span>
+                } @else { <span class="muted">—</span> }
+              </td>
+              <td>
+                @if (j.publicada) { <span class="pub ok">Publicada</span> } @else { <span class="pub">Rascunho</span> }
+              </td>
+              <td class="muted small">{{ j.atualizadoEm | date: 'dd/MM/yy HH:mm' }}</td>
+              <td class="acoes">
+                <a class="btn ghost sm" [routerLink]="['/jogo', j.slug]">Ver</a>
+                <a class="btn sm" [routerLink]="['/admin/jogos', j.id, 'editar']">Editar</a>
+                <button class="btn sm danger" (click)="excluir(j)">Excluir</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

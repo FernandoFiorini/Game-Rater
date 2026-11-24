@@ -1,0 +1,21 @@
+<header class="topbar">
+  <div class="topbar-inner">
+    <a routerLink="/" class="logo">
+      <span class="logo-mark">GR</span>
+      <span>Game Rater</span>
+    </a>
+
+    <nav>
+      <a routerLink="/" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: true }">Reviews</a>
+      <a routerLink="/backlog" routerLinkActive="ativo">Backlog</a>
+      <a routerLink="/estatisticas" routerLinkActive="ativo">Estatísticas</a>
+      <a routerLink="/admin" routerLinkActive="ativo">Gerenciar</a>
+    </nav>
+
+    <a class="btn primary sm novo" routerLink="/admin/jogos/novo">+ Novo jogo</a>
+  </div>
+</header>
+
+<main>
+  <router-outlet />
+</main>

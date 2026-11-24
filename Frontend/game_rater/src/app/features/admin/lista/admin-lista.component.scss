@@ -1,0 +1,95 @@
+.tabela-wrap {
+  padding: 0;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.num {
+  text-align: center;
+}
+
+.jogo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  img,
+  .sem {
+    width: 36px;
+    height: 48px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: var(--surface-3);
+    flex: none;
+  }
+}
+
+.nome {
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.small {
+  font-size: 12px;
+}
+
+.nota {
+  display: inline-grid;
+  place-items: center;
+  min-width: 36px;
+  height: 26px;
+  border-radius: 6px;
+  font: 700 13px var(--font-display);
+  color: #fff;
+}
+
+.pub {
+  font-size: 12px;
+  color: var(--text-muted);
+
+  &.ok {
+    color: #7fd17f;
+  }
+}
+
+.acoes {
+  text-align: right;
+  white-space: nowrap;
+
+  .btn + .btn {
+    margin-left: 6px;
+  }
+}

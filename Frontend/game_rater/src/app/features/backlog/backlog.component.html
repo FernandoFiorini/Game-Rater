@@ -1,0 +1,59 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Backlog</h1>
+      <p class="sub">O que estou jogando, o que está na fila e o que quero jogar.</p>
+    </div>
+    <a class="btn primary" routerLink="/admin/jogos/novo" [queryParams]="{ status: 'backlog' }">+ Adicionar jogo</a>
+  </div>
+
+  @if (jogos() === null) {
+    <div class="muted">Carregando…</div>
+  } @else {
+    <div class="board">
+      @for (col of colunas(); track col.status) {
+        <section class="coluna" [attr.data-status]="col.status">
+          <header>
+            <h2><span aria-hidden="true">{{ col.info.icone }}</span> {{ col.info.rotulo }}</h2>
+            <span class="contador">{{ col.jogos.length }}</span>
+          </header>
+          <p class="desc">{{ col.descricao }}</p>
+
+          <div class="itens">
+            @for (jogo of col.jogos; track jogo.id) {
+              <article class="item">
+                <a class="thumb" [routerLink]="['/admin/jogos', jogo.id, 'editar']">
+                  @if (jogo.capaUrl) {
+                    <img [src]="jogo.capaUrl | imgUrl" alt="" loading="lazy" />
+                  } @else {
+                    <span>{{ jogo.nome.charAt(0) }}</span>
+                  }
+                </a>
+                <div class="corpo">
+                  <a class="nome" [routerLink]="['/admin/jogos', jogo.id, 'editar']">{{ jogo.nome }}</a>
+                  <div class="meta">{{ jogo.plataforma ?? (jogo.generos.slice(0, 2).join(', ') || '—') }}</div>
+
+                  <div class="prioridade" role="group" [attr.aria-label]="'Prioridade de ' + jogo.nome">
+                    @for (e of estrelas; track e) {
+                      <button type="button" [class.on]="(jogo.prioridade ?? 0) >= e"
+                              [attr.aria-label]="'Prioridade ' + e" (click)="priorizar(jogo, e)">★</button>
+                    }
+                  </div>
+                </div>
+
+                <select class="select mover" [attr.aria-label]="'Mover ' + jogo.nome"
+                        (change)="mover(jogo, $any($event.target).value)">
+                  @for (s of status; track s.valor) {
+                    <option [value]="s.valor" [selected]="s.valor === jogo.status">{{ s.rotulo }}</option>
+                  }
+                </select>
+              </article>
+            } @empty {
+              <div class="vazio">Nada aqui.</div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  }
+</div>

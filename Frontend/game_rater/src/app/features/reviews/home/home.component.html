@@ -1,0 +1,62 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Reviews</h1>
+      <p class="sub">Minhas opiniões sobre os jogos que joguei, categoria por categoria.</p>
+    </div>
+  </div>
+
+  <div class="toolbar" role="search">
+    <input class="input busca" type="search" placeholder="Buscar por nome ou desenvolvedora…"
+           aria-label="Buscar" [value]="busca()" (input)="busca.set($any($event.target).value)" />
+
+    <select class="select" aria-label="Gênero" [value]="generoId() ?? ''"
+            (change)="generoId.set(numero($any($event.target).value))">
+      <option value="">Todos os gêneros</option>
+      @for (g of lookups.lookups()?.generos ?? []; track g.id) {
+        <option [value]="g.id">{{ g.nome }}</option>
+      }
+    </select>
+
+    <select class="select" aria-label="Plataforma" [value]="plataformaId() ?? ''"
+            (change)="plataformaId.set(numero($any($event.target).value))">
+      <option value="">Todas as plataformas</option>
+      @for (p of lookups.lookups()?.plataformas ?? []; track p.id) {
+        <option [value]="p.id">{{ p.nome }}</option>
+      }
+    </select>
+
+    <select class="select" aria-label="Ordenar" [value]="ordem()" (change)="ordem.set($any($event.target).value)">
+      <option value="recentes">Mais recentes</option>
+      <option value="nota">Maior nota</option>
+      <option value="nome">Nome (A–Z)</option>
+      <option value="lancamento">Lançamento</option>
+    </select>
+
+    @if (temFiltro()) {
+      <button class="btn ghost" (click)="limpar()">Limpar filtros</button>
+    }
+  </div>
+
+  @if (carregando()) {
+    <div class="grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="esqueleto"></div>
+      }
+    </div>
+  } @else if (filtrados().length) {
+    <p class="contagem">{{ filtrados().length }} {{ filtrados().length === 1 ? 'jogo' : 'jogos' }}</p>
+    <div class="grid">
+      @for (jogo of filtrados(); track jogo.id) {
+        <app-game-card [jogo]="jogo" />
+      }
+    </div>
+  } @else if (temFiltro()) {
+    <div class="empty">Nenhum jogo encontrado com esses filtros.</div>
+  } @else {
+    <div class="empty">
+      <p>Nenhuma review publicada ainda.</p>
+      <a class="btn primary" routerLink="/admin/jogos/novo">Escrever a primeira review</a>
+    </div>
+  }
+</div>

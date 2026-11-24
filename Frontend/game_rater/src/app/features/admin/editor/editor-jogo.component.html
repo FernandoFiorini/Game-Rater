@@ -1,0 +1,310 @@
+<div class="page">
+  <header class="topo">
+    <a routerLink="/admin" class="voltar">← Gerenciar</a>
+    <h1>{{ id() ? 'Editar' : 'Novo' }}: <span class="nome-topo">{{ nomeJogo() }}</span></h1>
+  </header>
+
+  @if (carregando()) {
+    <div class="muted">Carregando…</div>
+  } @else {
+    <div class="layout">
+      <!-- ================= FORMULÁRIO ================= -->
+      <form class="principal" [formGroup]="form" (ngSubmit)="salvar()">
+
+        <!-- STATUS -->
+        <section class="card status-card" formGroupName="review">
+          <div class="field">
+            <span class="label">Status</span>
+            <app-chip-select formControlName="status" [opcoes]="opcoesStatus" [permitirVazio]="false" />
+          </div>
+
+          @if (pendente()) {
+            <div class="field">
+              <span class="label">Prioridade no backlog</span>
+              <div class="estrelas" role="group" aria-label="Prioridade">
+                @for (e of estrelas; track e) {
+                  <button type="button" [class.on]="(form.controls.review.controls.prioridade.value ?? 0) >= e"
+                          (click)="definirPrioridade(e)" [attr.aria-label]="'Prioridade ' + e">★</button>
+                }
+              </div>
+            </div>
+          }
+
+          @if (somenteJogo()) {
+            <div class="info">
+              Você ainda não jogou: só os dados do jogo e a capa. Notas, experiência, veredito e screenshots
+              ficam disponíveis quando o status mudar para Jogando ou concluído.
+            </div>
+          }
+        </section>
+
+        <!-- IMPORTAR -->
+        <section class="importar">
+          <div class="importar-cab">
+            <h2>Importar dados</h2>
+            <span class="muted">Preenche nome, datas, empresas, gêneros, plataformas e imagens.</span>
+          </div>
+          <app-busca-externa (importar)="aplicarImportacao($event)" />
+        </section>
+
+        <!-- 1. JOGO -->
+        <section id="jogo" class="card secao" formGroupName="jogo">
+          <header class="secao-cab">
+            <span class="num">1</span>
+            <div><h2>Jogo</h2><p>Dados objetivos sobre o jogo.</p></div>
+          </header>
+
+          <div class="field">
+            <label for="nome">Nome *</label>
+            <input id="nome" class="input grande" formControlName="nome" placeholder="Ex.: Silent Hill 2" />
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label for="dtLancamento">Lançamento</label>
+              <input id="dtLancamento" type="date" class="input" formControlName="dtLancamento" />
+            </div>
+            <div class="field">
+              <label for="desenvolvedora">Desenvolvedora</label>
+              <input id="desenvolvedora" class="input" formControlName="desenvolvedora" />
+            </div>
+            <div class="field">
+              <label for="publisher">Publisher</label>
+              <input id="publisher" class="input" formControlName="publisher" />
+            </div>
+          </div>
+
+          <div class="field">
+            <span class="label">Gêneros</span>
+            <app-chip-select formControlName="generoIds" [opcoes]="opcoesGenero()" [multiplo]="true" />
+          </div>
+
+          <div class="field">
+            <span class="label">Lançado para</span>
+            <app-chip-select formControlName="plataformaIds" [opcoes]="opcoesPlataforma()" [multiplo]="true" />
+          </div>
+
+          <div class="field">
+            <span class="label">Classificação indicativa</span>
+            <app-chip-select formControlName="faixaEtariaId" [opcoes]="opcoesFaixaEtaria()" />
+          </div>
+
+          <div class="field">
+            <label for="descricao">Sinopse</label>
+            <textarea id="descricao" class="textarea" formControlName="descricao" rows="3"
+                      placeholder="Descrição oficial do jogo (não é a sua opinião — essa vai no veredito)"></textarea>
+          </div>
+        </section>
+
+        <!-- 2. IMAGENS -->
+        <section id="imagens" class="card secao">
+          <header class="secao-cab">
+            <span class="num">2</span>
+            <div><h2>{{ somenteJogo() ? 'Capa' : 'Imagens' }}</h2><p>{{ somenteJogo() ? 'Aparece no card do backlog.' : 'Capa para os cards, banner para o topo da página, screenshots para a galeria.' }}</p></div>
+          </header>
+          <app-imagens-editor [(imagens)]="imagens" [somenteCapa]="somenteJogo()" />
+        </section>
+
+        @if (!somenteJogo()) {
+        <!-- 3. EXPERIÊNCIA -->
+        <section id="experiencia" class="card secao" formGroupName="review">
+          <header class="secao-cab">
+            <span class="num">3</span>
+            <div><h2>Minha experiência</h2><p>Contexto de como você jogou.</p></div>
+          </header>
+
+          <div class="grid-3">
+            <div class="field">
+              <label for="plataformaId">Joguei no</label>
+              <select id="plataformaId" class="select" formControlName="plataformaId">
+                <option [ngValue]="null">—</option>
+                @for (p of lookups.lookups()?.plataformas ?? []; track p.id) {
+                  <option [ngValue]="p.id">{{ p.nome }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label for="horas">Horas jogadas</label>
+              <input id="horas" type="number" min="0" step="0.5" class="input" formControlName="horasJogadas" placeholder="Ex.: 32" />
+            </div>
+            <div class="field">
+              <label for="dificuldade">Dificuldade escolhida</label>
+              <input id="dificuldade" class="input" formControlName="dificuldade" list="dificuldades" placeholder="Ex.: Normal" />
+              <datalist id="dificuldades">
+                <option value="Fácil"></option><option value="Normal"></option>
+                <option value="Difícil"></option><option value="Muito difícil"></option>
+              </datalist>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="dtInicio">Comecei em</label>
+              <input id="dtInicio" type="date" class="input" formControlName="dtInicio" />
+            </div>
+            <div class="field">
+              <label for="dtConclusao">Terminei em</label>
+              <input id="dtConclusao" type="date" class="input" formControlName="dtConclusao" />
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. NOTAS -->
+        <section id="notas" class="card secao">
+          <header class="secao-cab">
+            <span class="num">4</span>
+            <div>
+              <h2>Notas por categoria</h2>
+              <p>{{ avaliadas() }} de {{ categorias().length }} avaliadas · o peso define quanto cada categoria conta na média.</p>
+            </div>
+          </header>
+
+          @if (pendente()) {
+            <div class="info">Você ainda está jogando. As notas são opcionais até terminar.</div>
+          }
+
+          <div class="notas" formArrayName="notas">
+            @for (cat of categorias(); track cat.id; let i = $index) {
+              <div class="nota-card" [formGroupName]="i"
+                   [class.sem-nota]="notasValores()[i].nota == null"
+                   [style.--cor]="corNota(notasValores()[i].nota)">
+                <div class="nota-cab">
+                  <div>
+                    <h3>{{ cat.nome }} <span class="peso" title="Peso na média ponderada">peso ×{{ cat.peso | number: '1.0-2' }}</span></h3>
+                    @if (cat.descricao) { <p class="desc">{{ cat.descricao }}</p> }
+                  </div>
+                  <div class="valor-nota">
+                    @if (notasValores()[i].nota != null) {
+                      <span class="numero">{{ notasValores()[i].nota }}</span>
+                      <span class="rot">{{ rotuloNota(notasValores()[i].nota) }}</span>
+                    } @else {
+                      <span class="numero vazio">—</span>
+                    }
+                  </div>
+                </div>
+
+                @if (notasValores()[i].nota != null) {
+                  <div class="controle">
+                    <input type="range" min="0" max="100" step="1" formControlName="nota" class="slider"
+                           [attr.aria-label]="'Nota de ' + cat.nome" />
+                    <input type="number" min="0" max="100" class="input mini" formControlName="nota"
+                           [attr.aria-label]="'Nota de ' + cat.nome + ' (número)'" />
+                    <button type="button" class="btn ghost sm" (click)="definirNota(i, null)">Não se aplica</button>
+                  </div>
+                } @else {
+                  <div class="controle">
+                    <button type="button" class="btn sm" (click)="definirNota(i, 70)">Dar nota</button>
+                    <span class="muted pequeno">Sem nota — não entra na média.</span>
+                  </div>
+                }
+
+                <details class="justificativa" [open]="!!notasArray.at(i).controls.texto.value">
+                  <summary>Justificativa</summary>
+                  <angular-editor formControlName="texto" [config]="editorNota" />
+                </details>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 5. VEREDITO -->
+        <section id="veredito" class="card secao" formGroupName="review">
+          <header class="secao-cab">
+            <span class="num">5</span>
+            <div><h2>Veredito</h2><p>Sua conclusão sobre o jogo.</p></div>
+          </header>
+
+          <div class="field">
+            <span class="label">Resumo</span>
+            <angular-editor formControlName="resumo" [config]="editorResumo" />
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <span class="label">Pontos positivos</span>
+              <app-tag-input formControlName="pros" variante="pro" placeholder="Ex.: Atmosfera impecável" />
+            </div>
+            <div class="field">
+              <span class="label">Pontos negativos</span>
+              <app-tag-input formControlName="contras" variante="contra" placeholder="Ex.: Combate repetitivo" />
+            </div>
+          </div>
+
+          <div class="nota-manual">
+            <label class="switch">
+              <input type="checkbox" [checked]="notaManualAtiva()" (change)="alternarNotaManual()" />
+              <span class="trilho"></span>
+              Definir a nota final manualmente
+            </label>
+            @if (notaManualAtiva()) {
+              <div class="controle">
+                <input type="range" min="0" max="100" class="slider" formControlName="notaManual" aria-label="Nota final manual"
+                       [style.--cor]="corNota(form.controls.review.controls.notaManual.value)" />
+                <input type="number" min="0" max="100" class="input mini" formControlName="notaManual" aria-label="Nota final manual (número)" />
+                <span class="muted pequeno">Média ponderada: {{ notaCalculada() ?? '—' }}</span>
+              </div>
+            }
+          </div>
+        </section>
+        }
+      </form>
+
+      <!-- ================= LATERAL ================= -->
+      <aside class="lateral">
+        <div class="card resumo">
+          <div class="resumo-topo">
+            <div class="mini-capa">
+              @if (capaUrl()) { <img [src]="capaUrl() | imgUrl" alt="" /> } @else { <span>{{ nomeJogo().charAt(0) }}</span> }
+            </div>
+            <div class="resumo-txt">
+              <strong>{{ nomeJogo() }}</strong>
+              <span class="muted pequeno">{{ form.controls.review.controls.publicada.value ? 'Publicada' : 'Rascunho' }}</span>
+            </div>
+          </div>
+
+          @if (!somenteJogo()) {
+          <div class="nota-viva">
+            <app-score-ring [nota]="notaFinal()" [tamanho]="110" [mostrarRotulo]="true" />
+            <p class="muted pequeno">
+              @if (notaManualAtiva()) { Nota manual }
+              @else if (avaliadas()) { Média ponderada de {{ avaliadas() }} {{ avaliadas() === 1 ? 'categoria' : 'categorias' }} }
+              @else { Nenhuma categoria avaliada }
+            </p>
+          </div>
+
+          }
+
+          <nav class="passos" aria-label="Seções">
+            @for (s of secoesVisiveis(); track s.id; let i = $index) {
+              <button type="button" (click)="irPara(s.id)" [class.ok]="progresso()[s.id]">
+                <span class="check">{{ progresso()[s.id] ? '✓' : i + 1 }}</span>{{ s.titulo }}
+              </button>
+            }
+          </nav>
+
+          <div class="acoes">
+            @if (somenteJogo()) {
+              <button type="button" class="btn primary" (click)="salvar(false)" [disabled]="salvando()">
+                {{ salvando() ? 'Salvando…' : 'Salvar' }}
+              </button>
+            } @else if (form.controls.review.controls.publicada.value) {
+              <button type="button" class="btn primary" (click)="salvar(true)" [disabled]="salvando()">
+                {{ salvando() ? 'Salvando…' : 'Salvar alterações' }}
+              </button>
+              <button type="button" class="btn ghost" (click)="salvar(false)" [disabled]="salvando()">Despublicar</button>
+            } @else {
+              <button type="button" class="btn primary" (click)="salvar(true)" [disabled]="salvando() || !podePublicar()"
+                      [title]="podePublicar() ? '' : 'Dê nota a pelo menos uma categoria para publicar'">
+                {{ salvando() ? 'Salvando…' : 'Publicar review' }}
+              </button>
+              <button type="button" class="btn" (click)="salvar(false)" [disabled]="salvando()">Salvar rascunho</button>
+            }
+            @if (slug()) {
+              <a class="btn ghost" [routerLink]="['/jogo', slug()]">Ver página</a>
+            }
+          </div>
+        </div>
+      </aside>
+    </div>
+  }
+</div>

@@ -1,0 +1,88 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Estatísticas</h1>
+      <p class="sub">Médias consideram apenas reviews publicadas.</p>
+    </div>
+  </div>
+
+  @if (dados(); as d) {
+    <!-- KPIs -->
+    <section class="kpis">
+      <div class="kpi destaque">
+        <app-score-ring [nota]="d.resumo.mediaGeral" [tamanho]="72" />
+        <div>
+          <span class="lbl">Média geral</span>
+          <span class="rotulo">{{ lookups.faixa(d.resumo.mediaGeral)?.rotulo ?? '—' }}</span>
+        </div>
+      </div>
+      <div class="kpi"><span class="lbl">Reviews publicadas</span><span class="val">{{ d.resumo.totalAvaliados }}</span></div>
+      <div class="kpi"><span class="lbl">Horas jogadas</span><span class="val">{{ d.resumo.horasTotais | number: '1.0-0' }}</span></div>
+      <div class="kpi"><span class="lbl">Concluídos</span><span class="val">{{ d.resumo.concluidos }}</span>
+        <span class="extra">{{ d.resumo.platinados }} {{ d.resumo.platinados === 1 ? 'platinado' : 'platinados' }}</span></div>
+      <div class="kpi"><span class="lbl">Jogando</span><span class="val">{{ d.resumo.jogando }}</span></div>
+      <div class="kpi"><span class="lbl">No backlog</span><span class="val">{{ d.resumo.backlog }}</span></div>
+      <div class="kpi"><span class="lbl">Abandonados</span><span class="val">{{ d.resumo.abandonados }}</span></div>
+    </section>
+
+    <div class="graficos">
+      <app-chart-card titulo="Média por categoria" subtitulo="Onde os jogos que joguei mais brilham — e onde decepcionam"
+                      [itens]="porCategoria()" colunaRotulo="Categoria" colunaValor="Média">
+        <app-bar-list [itens]="porCategoria()" [max]="100" />
+      </app-chart-card>
+
+      <app-chart-card titulo="Distribuição das notas" subtitulo="Quantidade de jogos por faixa de nota"
+                      [itens]="temDistribuicao() ? distribuicao() : []" colunaRotulo="Faixa" colunaValor="Jogos">
+        <app-column-chart [itens]="distribuicao()" />
+      </app-chart-card>
+
+      <app-chart-card titulo="Média por gênero" subtitulo="Os 12 gêneros com mais reviews"
+                      [itens]="porGenero()" colunaRotulo="Gênero" colunaValor="Média">
+        <app-bar-list [itens]="porGenero()" [max]="100" />
+      </app-chart-card>
+
+      <app-chart-card titulo="Jogos por plataforma" subtitulo="Onde eu joguei (exclui backlog)"
+                      [itens]="porPlataforma()" colunaRotulo="Plataforma" colunaValor="Jogos">
+        <app-bar-list [itens]="porPlataforma()" />
+      </app-chart-card>
+
+      <app-chart-card titulo="Jogos concluídos por ano" subtitulo="Pela data de conclusão (zerados e platinados)"
+                      [itens]="concluidosPorAno()" colunaRotulo="Ano" colunaValor="Jogos">
+        <app-column-chart [itens]="concluidosPorAno()" />
+      </app-chart-card>
+
+      <app-chart-card titulo="Média por ano de lançamento" subtitulo="Os jogos de qual ano eu mais gostei"
+                      [itens]="porAnoLancamento()" colunaRotulo="Ano" colunaValor="Média">
+        <app-column-chart [itens]="porAnoLancamento()" [max]="100" />
+      </app-chart-card>
+    </div>
+
+    <!-- Rankings -->
+    <div class="rankings">
+      @for (r of [{ titulo: 'Melhores notas', lista: d.melhores }, { titulo: 'Piores notas', lista: piores() }]; track r.titulo) {
+        <section class="card ranking">
+          <h3>{{ r.titulo }}</h3>
+          @if (r.lista.length) {
+            <ol>
+              @for (j of r.lista; track j.id; let i = $index) {
+                <li>
+                  <a [routerLink]="['/jogo', j.slug]">
+                    <span class="pos">{{ i + 1 }}</span>
+                    @if (j.capaUrl) { <img [src]="j.capaUrl | imgUrl" alt="" /> } @else { <span class="sem"></span> }
+                    <span class="nome">{{ j.nome }}</span>
+                    <span class="rotulo">{{ j.rotulo }}</span>
+                    <span class="nota" [style.background]="j.cor">{{ j.notaFinal }}</span>
+                  </a>
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="muted">Sem reviews publicadas ainda.</p>
+          }
+        </section>
+      }
+    </div>
+  } @else {
+    <div class="muted">Carregando…</div>
+  }
+</div>
