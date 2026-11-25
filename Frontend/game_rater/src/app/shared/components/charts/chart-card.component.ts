@@ -20,7 +20,7 @@ import { ItemGrafico } from './grafico.model';
       </header>
 
       @if (!itens().length) {
-        <p class="vazio">Sem dados suficientes ainda.</p>
+        <p class="vazio">Ainda só o vazio por aqui.</p>
       } @else if (tabela()) {
         <table>
           <caption class="sr-only">{{ titulo() }}</caption>

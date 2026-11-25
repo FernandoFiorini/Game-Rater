@@ -36,7 +36,7 @@ export class DetalheJogoComponent {
       map((p) => p.get('slug')!),
       switchMap((slug) =>
         this.jogosService.obter(slug).pipe(
-          tap((j) => this.titulo.setTitle(`${j.nome} — Game Rater`)),
+          tap((j) => this.titulo.setTitle(`${j.nome} — Void Rater`)),
           map((jogo): Estado => ({ carregando: false, jogo })),
           catchError(() => of<Estado>({ carregando: false, jogo: null })),
           startWith<Estado>({ carregando: true }),

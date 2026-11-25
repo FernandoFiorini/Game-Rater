@@ -389,7 +389,7 @@
   align-items: center;
   padding: 16px 0;
   border-radius: var(--radius);
-  background: radial-gradient(circle at 50% 0%, rgba(229, 56, 45, 0.1), transparent 70%), #0a0a0c;
+  background: radial-gradient(circle at 50% 0%, rgba(var(--accent-rgb), 0.1), transparent 70%), #050509;
 
   p {
     margin: 8px 0 0;

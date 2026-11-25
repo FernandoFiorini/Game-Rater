@@ -1,25 +1,31 @@
 /* =====================================================================
-   Game Rater — design tokens + base
+   Void Rater — design tokens + base
+   Estilo artístico em teste: "o vazio" (preto profundo, violeta, brilhos sutis).
+   Para mudar o tom do site inteiro, ajuste --accent / --accent-rgb.
    ===================================================================== */
 
 :root {
   color-scheme: dark;
 
-  --bg: #0d0e11;
-  --surface-1: #15171c;
-  --surface-2: #1c1f26;
-  --surface-3: #252932;
-  --border: #2b303a;
-  --border-strong: #3a404c;
+  --bg: #07070b;
+  --surface-1: #0f0f17;
+  --surface-2: #161620;
+  --surface-3: #20202d;
+  --border: #23233a;
+  --border-strong: #34344f;
 
-  --text-primary: #f0efec;
-  --text-secondary: #b9b8b0;
-  --text-muted: #85847d;
+  --text-primary: #f0eff6;
+  --text-secondary: #b6b4c8;
+  --text-muted: #807e96;
 
-  --accent: #e5382d;
-  --accent-hover: #f04a3f;
-  --accent-soft: rgba(229, 56, 45, 0.14);
+  /* violeta do vazio */
+  --accent-rgb: 124, 92, 255;
+  --accent: #7c5cff;
+  --accent-hover: #9277ff;
+  --accent-claro: #b18cff;
+  --accent-soft: rgba(var(--accent-rgb), 0.16);
   --on-accent: #ffffff;
+  --glow: 0 0 24px rgba(var(--accent-rgb), 0.35);
 
   /* série única dos gráficos (dataviz: azul do slot 1, passo escuro) */
   --series-1: #3987e5;
@@ -34,7 +40,7 @@
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Sora', var(--font);
+  --font-display: 'Space Grotesk', var(--font);
 
   --page-max: 1240px;
 }
@@ -61,7 +67,38 @@ h1, h2, h3, h4 {
   font-weight: 600;
   line-height: 1.2;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- ambiente: campo de estrelas + nebulosa + grão ------------- */
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* estrelas discretas (3 camadas em tamanhos diferentes) + duas nebulosas */
+body::before {
+  background:
+    radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(1.5px 1.5px at 70px 160px, rgba(200, 182, 255, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 190px 210px, rgba(255, 255, 255, 0.3), transparent 60%),
+    radial-gradient(900px 600px at 0% 0%, rgba(var(--accent-rgb), 0.10), transparent 70%),
+    radial-gradient(800px 700px at 100% 100%, rgba(64, 80, 255, 0.07), transparent 70%);
+  background-size: 240px 240px, 240px 240px, 240px 240px, 240px 240px, 100% 100%, 100% 100%;
+  opacity: 0.8;
+}
+
+/* grão (ruído SVG) para tirar o aspecto de cor chapada */
+body::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.045;
+  mix-blend-mode: overlay;
 }
 
 a {
@@ -160,6 +197,7 @@ img {
     background: var(--accent);
     border-color: var(--accent);
     color: var(--on-accent);
+    box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.35);
 
     &:hover:not(:disabled) {
       background: var(--accent-hover);

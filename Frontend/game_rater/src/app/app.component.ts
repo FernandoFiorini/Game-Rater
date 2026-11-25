@@ -1,19 +1,21 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { VoidLogoComponent } from './shared/components/void-logo/void-logo.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, VoidLogoComponent],
   templateUrl: './app.component.html',
   styles: `
     .topbar {
       position: sticky;
       top: 0;
       z-index: 50;
-      background: rgba(13, 14, 17, 0.85);
+      background: rgba(7, 7, 11, 0.72);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 0 rgba(var(--accent-rgb), 0.08);
     }
     .topbar-inner {
       max-width: var(--page-max);
@@ -32,15 +34,14 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
       align-items: center;
       gap: 10px;
     }
-    .logo-mark {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      background: var(--accent);
-      display: grid;
-      place-items: center;
-      font-size: 13px;
-      color: #fff;
+    .logo-texto { letter-spacing: -0.02em; }
+    .logo-texto .void {
+      background: linear-gradient(90deg, #e7deff, var(--accent-claro));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
     nav {
       display: flex;
@@ -56,10 +57,10 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
       transition: color 0.15s, background 0.15s;
     }
     nav a:hover { color: var(--text-primary); background: var(--surface-2); }
-    nav a.ativo { color: var(--text-primary); background: var(--surface-2); }
+    nav a.ativo { color: var(--text-primary); background: var(--surface-2); box-shadow: inset 0 -2px 0 var(--accent); }
     @media (max-width: 720px) {
       .topbar-inner { gap: 12px; padding: 0 12px; overflow-x: auto; }
-      .logo span:last-child { display: none; }
+      .logo-texto { display: none; }
       .novo { display: none; }
     }
   `,

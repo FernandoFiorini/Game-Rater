@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    title: 'Game Rater — Reviews',
+    title: 'Void Rater — Reviews',
     loadComponent: () => import('./features/reviews/home/home.component').then((m) => m.HomeComponent),
   },
   {
@@ -13,12 +13,12 @@ export const routes: Routes = [
   },
   {
     path: 'backlog',
-    title: 'Game Rater — Backlog',
+    title: 'Void Rater — Backlog',
     loadComponent: () => import('./features/backlog/backlog.component').then((m) => m.BacklogComponent),
   },
   {
     path: 'estatisticas',
-    title: 'Game Rater — Estatísticas',
+    title: 'Void Rater — Estatísticas',
     loadComponent: () =>
       import('./features/estatisticas/estatisticas.component').then((m) => m.EstatisticasComponent),
   },
@@ -28,20 +28,24 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        title: 'Game Rater — Gerenciar',
+        title: 'Void Rater — Gerenciar',
         loadComponent: () => import('./features/admin/lista/admin-lista.component').then((m) => m.AdminListaComponent),
       },
       {
         path: 'jogos/novo',
-        title: 'Game Rater — Novo jogo',
+        title: 'Void Rater — Novo jogo',
         loadComponent: () => import('./features/admin/editor/editor-jogo.component').then((m) => m.EditorJogoComponent),
       },
       {
         path: 'jogos/:id/editar',
-        title: 'Game Rater — Editar jogo',
+        title: 'Void Rater — Editar jogo',
         loadComponent: () => import('./features/admin/editor/editor-jogo.component').then((m) => m.EditorJogoComponent),
       },
     ],
   },
-  { path: '**', redirectTo: '' },
+  {
+    path: '**',
+    title: 'Void Rater — Perdido no vazio',
+    loadComponent: () => import('./features/nao-encontrado/nao-encontrado.component').then((m) => m.NaoEncontradoComponent),
+  },
 ];

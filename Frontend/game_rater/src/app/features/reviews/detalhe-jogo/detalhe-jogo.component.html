@@ -1,6 +1,6 @@
 @if (carregando()) {
 <div class="page">
-  <div class="carregando">Carregando…</div>
+  <div class="carregando">Atravessando o vazio…</div>
 </div>
 } @else {
 @if (jogo(); as j) {
@@ -158,7 +158,7 @@
 } @else {
 <div class="page">
   <div class="empty">
-    <p>Jogo não encontrado.</p>
+    <p>Perdido no vazio: jogo não encontrado.</p>
     <a class="btn" routerLink="/">Voltar para as reviews</a>
   </div>
 </div>

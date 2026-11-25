@@ -8,7 +8,7 @@
   </div>
 
   @if (jogos() === null) {
-    <div class="muted">Carregando…</div>
+    <div class="muted">Atravessando o vazio…</div>
   } @else {
     <div class="board">
       @for (col of colunas(); track col.status) {
@@ -49,7 +49,7 @@
                 </select>
               </article>
             } @empty {
-              <div class="vazio">Nada aqui.</div>
+              <div class="vazio">Nada aqui. Só o vazio.</div>
             }
           </div>
         </section>
@@ -60,7 +60,7 @@
     <section class="para-avaliar">
       <header class="pa-cab">
         <div>
-          <h2>Para avaliar <span class="contador">{{ paraAvaliar()?.length ?? 0 }}</span></h2>
+          <h2>No horizonte <span class="contador">{{ paraAvaliar()?.length ?? 0 }}</span></h2>
           <p class="desc">Jogos que já joguei e ainda não têm review publicada.</p>
         </div>
         @if ((paraAvaliar()?.length ?? 0) > 6) {
@@ -87,7 +87,7 @@
             <span class="pa-acao" aria-hidden="true">Avaliar →</span>
           </a>
         } @empty {
-          <div class="vazio">{{ buscaAvaliar() ? 'Nenhum jogo encontrado.' : 'Nenhuma review pendente. 🎉' }}</div>
+          <div class="vazio">{{ buscaAvaliar() ? 'Nenhum jogo encontrado.' : 'Horizonte limpo: nenhuma review pendente.' }}</div>
         }
       </div>
     </section>
