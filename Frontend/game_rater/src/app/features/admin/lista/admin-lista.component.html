@@ -20,6 +20,11 @@
       <option value="publicadas">Só publicadas</option>
       <option value="rascunhos">Só rascunhos</option>
     </select>
+    <select class="select" aria-label="Avaliação" [value]="filtroProgresso()"
+            (change)="filtroProgresso.set($any($event.target).value)">
+      <option value="">Toda avaliação</option>
+            @for (p of progressoOpcoes; track p.valor) { <option [value]="p.valor">{{ p.rotulo }}</option> }
+    </select>
   </div>
 
   @if (jogos() === null) {
@@ -36,6 +41,7 @@
           <tr>
             <th>Jogo</th>
             <th>Status</th>
+            <th>Avaliação</th>
             <th class="num">Nota</th>
             <th>Publicação</th>
             <th>Atualizado</th>
@@ -55,6 +61,7 @@
                 </div>
               </td>
               <td><app-status-badge [status]="j.status" /></td>
+              <td><app-progresso-badge [jogo]="j" /></td>
               <td class="num">
                 @if (j.notaFinal != null) {
                   <span class="nota" [style.background]="j.cor" [style.color]="j.cor | corTexto">{{ j.notaFinal }}</span>

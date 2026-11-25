@@ -64,8 +64,15 @@
           <p class="desc">Jogos que já joguei e ainda não têm review publicada.</p>
         </div>
         @if ((paraAvaliar()?.length ?? 0) > 6) {
-          <input class="input pa-busca" type="search" placeholder="Buscar…" aria-label="Buscar jogos para avaliar"
-                 [value]="buscaAvaliar()" (input)="buscaAvaliar.set($any($event.target).value)" />
+          <div class="pa-filtros">
+            <select class="select" aria-label="Filtrar por avaliação" [value]="filtroProgresso()"
+                    (change)="filtroProgresso.set($any($event.target).value)">
+            <option value="">Toda avaliação</option>
+            @for (p of progressoOpcoes; track p.valor) { <option [value]="p.valor">{{ p.rotulo }}</option> }
+            </select>
+            <input class="input pa-busca" type="search" placeholder="Buscar…" aria-label="Buscar jogos para avaliar"
+                   [value]="buscaAvaliar()" (input)="buscaAvaliar.set($any($event.target).value)" />
+          </div>
         }
       </header>
 
@@ -82,12 +89,12 @@
             <span class="corpo">
               <span class="nome">{{ jogo.nome }}</span>
               <span class="meta">{{ jogo.plataforma ?? '—' }}@if (jogo.dtConclusao) { · {{ jogo.dtConclusao.slice(0, 4) }} }</span>
-              <app-status-badge [status]="jogo.status" />
+              <span class="pa-tags"><app-status-badge [status]="jogo.status" /><app-progresso-badge [jogo]="jogo" /></span>
             </span>
             <span class="pa-acao" aria-hidden="true">Avaliar →</span>
           </a>
         } @empty {
-          <div class="vazio">{{ buscaAvaliar() ? 'Nenhum jogo encontrado.' : 'Horizonte limpo: nenhuma review pendente.' }}</div>
+          <div class="vazio">{{ buscaAvaliar() || filtroProgresso() ? 'Nenhum jogo encontrado.' : 'Horizonte limpo: nenhuma review pendente.' }}</div>
         }
       </div>
     </section>

@@ -6,13 +6,15 @@ import { JogoCard, StatusJogo } from '../../../core/models/jogo.model';
 import { JogosService } from '../../../core/services/jogos.service';
 import { STATUS } from '../../../core/util/status';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { ProgressoBadgeComponent } from '../../../shared/components/progresso-badge/progresso-badge.component';
+import { PROGRESSO, ProgressoAvaliacao, progressoDe } from '../../../core/util/progresso';
 import { CorTextoPipe } from '../../../shared/pipes/cor-texto.pipe';
 import { ImgUrlPipe } from '../../../shared/pipes/img-url.pipe';
 
 @Component({
   selector: 'app-admin-lista',
   standalone: true,
-  imports: [RouterLink, DatePipe, StatusBadgeComponent, ImgUrlPipe, CorTextoPipe],
+  imports: [RouterLink, DatePipe, StatusBadgeComponent, ImgUrlPipe, CorTextoPipe, ProgressoBadgeComponent],
   templateUrl: './admin-lista.component.html',
   styleUrl: './admin-lista.component.scss',
 })
@@ -26,6 +28,8 @@ export class AdminListaComponent {
   busca = signal('');
   filtroStatus = signal<StatusJogo | ''>('');
   filtroPublicacao = signal<'' | 'publicadas' | 'rascunhos'>('');
+  filtroProgresso = signal<ProgressoAvaliacao | ''>('');
+  readonly progressoOpcoes = PROGRESSO;
 
   filtrados = computed(() => {
     const termo = this.busca().trim().toLowerCase();
@@ -34,7 +38,8 @@ export class AdminListaComponent {
         (!termo || j.nome.toLowerCase().includes(termo)) &&
         (!this.filtroStatus() || j.status === this.filtroStatus()) &&
         (this.filtroPublicacao() !== 'publicadas' || j.publicada) &&
-        (this.filtroPublicacao() !== 'rascunhos' || !j.publicada),
+        (this.filtroPublicacao() !== 'rascunhos' || !j.publicada) &&
+        (!this.filtroProgresso() || progressoDe(j) === this.filtroProgresso()),
     );
   });
 

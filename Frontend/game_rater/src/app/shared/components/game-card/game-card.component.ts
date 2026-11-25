@@ -6,11 +6,13 @@ import { StatusBadgeComponent } from '../status-badge/status-badge.component';
 import { MustPlayComponent } from '../must-play/must-play.component';
 import { CorTextoPipe } from '../../pipes/cor-texto.pipe';
 import { isMustPlay } from '../../../core/util/must-play';
+import { ProgressoBadgeComponent } from '../progresso-badge/progresso-badge.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-game-card',
   standalone: true,
-  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent, MustPlayComponent, CorTextoPipe],
+  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent, MustPlayComponent, CorTextoPipe, ProgressoBadgeComponent],
   template: `
     <a class="game-card" [routerLink]="['/jogo', jogo().slug]">
       <div class="capa">
@@ -36,8 +38,9 @@ import { isMustPlay } from '../../../core/util/must-play';
         <div class="meta">
           {{ jogo().plataforma ?? 'Sem plataforma' }}@if (ano()) { · {{ ano() }} }
         </div>
-        @if (jogo().rotulo) {
-          <div class="rotulo">{{ jogo().rotulo }}</div>
+        @if (marcacoesInternas && jogo().publicada) {
+          <!-- TODO(lancamento): marcação só para o autor; some com environment.marcacoesInternas = false -->
+          <div class="interna"><app-progresso-badge [jogo]="jogo()" /></div>
         }
       </div>
     </a>
@@ -70,11 +73,13 @@ import { isMustPlay } from '../../../core/util/must-play';
     .info { padding: 10px 2px 0; }
     .nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .meta { font-size: 13px; color: var(--text-muted); }
-    .rotulo { font-size: 12px; color: var(--text-secondary); margin-top: 2px; font-weight: 500; }
+    .interna { margin-top: 6px; }
   `,
 })
 export class GameCardComponent {
   jogo = input.required<JogoCard>();
+
+  readonly marcacoesInternas = environment.marcacoesInternas;
 
   mustPlay = computed(() => this.jogo().publicada && isMustPlay(this.jogo().notaFinal));
 

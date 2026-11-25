@@ -241,3 +241,18 @@
   transition: opacity 0.15s;
   white-space: nowrap;
 }
+
+.pa-filtros {
+  display: flex;
+  gap: 10px;
+
+  .select {
+    width: auto;
+  }
+}
+
+.pa-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

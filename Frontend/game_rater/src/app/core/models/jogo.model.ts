@@ -35,6 +35,10 @@ export interface JogoCard {
   bannerUrl: string | null;
   generoIds: number[];
   generos: string[];
+  /** progresso da avaliação */
+  qtdNotas: number;
+  qtdTextos: number;
+  temResumo: boolean;
 }
 
 export interface NotaCategoria {

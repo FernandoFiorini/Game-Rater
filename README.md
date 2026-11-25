@@ -64,6 +64,7 @@ Para mudar pesos, categorias ou rótulos, edite as tabelas `categoria` / `faixa_
 
 - **Autenticação de admin** (`TODO(auth)`): hoje qualquer pessoa com acesso à API pode criar ou excluir. Precisa ser feita antes de publicar online.
 - **Notas do público** (`TODO(notas-publico)` em `001_schema.sql`): tabela `usuario` + `review.usuario_id`.
+- **Antes de publicar o site** (`TODO(lancamento)`): em `Frontend/game_rater/src/environments/environment.ts`, mudar `marcacoesInternas` para `false`. Isso esconde as tags "Falta texto" / "Completa" dos cards de Reviews, que são só para o autor.
 - **Links de afiliado** (`TODO(afiliados)`): botões "Onde comprar" na página da review.
   - Banco: nova migration com `jogo_link_compra (id, jogo_id → jogo ON DELETE CASCADE, loja, url, plataforma_id NULL, ordem)`.
   - Editor: seção "Onde comprar" (opcional, disponível também em Quero jogar/Backlog).

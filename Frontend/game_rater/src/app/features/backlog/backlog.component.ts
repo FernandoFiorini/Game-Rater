@@ -6,6 +6,8 @@ import { JogosService } from '../../core/services/jogos.service';
 import { STATUS, STATUS_PENDENTES, infoStatus } from '../../core/util/status';
 import { ImgUrlPipe } from '../../shared/pipes/img-url.pipe';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { ProgressoBadgeComponent } from '../../shared/components/progresso-badge/progresso-badge.component';
+import { PROGRESSO, ProgressoAvaliacao, progressoDe } from '../../core/util/progresso';
 
 const COLUNAS: { status: StatusJogo; descricao: string }[] = [
   { status: 'jogando', descricao: 'O que estou jogando agora' },
@@ -16,7 +18,7 @@ const COLUNAS: { status: StatusJogo; descricao: string }[] = [
 @Component({
   selector: 'app-backlog',
   standalone: true,
-  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent],
+  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent, ProgressoBadgeComponent],
   templateUrl: './backlog.component.html',
   styleUrl: './backlog.component.scss',
 })
@@ -35,10 +37,13 @@ export class BacklogComponent {
   /** Já jogados, mas sem review publicada: a fila de reviews a escrever. */
   paraAvaliar = signal<JogoCard[] | null>(null);
   buscaAvaliar = signal('');
+  filtroProgresso = signal<ProgressoAvaliacao | ''>('');
+  readonly progressoOpcoes = PROGRESSO;
   paraAvaliarFiltrados = computed(() => {
     const termo = this.buscaAvaliar().trim().toLowerCase();
     return (this.paraAvaliar() ?? [])
       .filter((j) => !termo || j.nome.toLowerCase().includes(termo))
+      .filter((j) => !this.filtroProgresso() || progressoDe(j) === this.filtroProgresso())
       .sort((a, b) => (b.dtConclusao ?? '').localeCompare(a.dtConclusao ?? ''));
   });
 

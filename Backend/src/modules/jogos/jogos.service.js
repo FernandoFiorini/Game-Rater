@@ -22,7 +22,14 @@ const COLUNAS_CARD = `
   capa_url   AS "capaUrl",
   banner_url AS "bannerUrl",
   genero_ids AS "generoIds",
-  generos`;
+  generos,
+  -- progresso da avaliação (tags "Sem notas" / "Falta texto" / "Completa")
+  (SELECT count(*) FROM review_nota rn
+    WHERE rn.review_id = vw_jogo_card.review_id AND rn.nota IS NOT NULL)::int AS "qtdNotas",
+  (SELECT count(*) FROM review_nota rn
+    WHERE rn.review_id = vw_jogo_card.review_id AND rn.nota IS NOT NULL
+      AND COALESCE(trim(rn.texto), '') <> '')::int AS "qtdTextos", -- categorias COM nota que têm justificativa
+  (SELECT COALESCE(trim(r.resumo), '') <> '' FROM review r WHERE r.id = vw_jogo_card.review_id) AS "temResumo"`;
 
 const ORDENACAO = {
   nota: 'nota_final DESC NULLS LAST, nome',
