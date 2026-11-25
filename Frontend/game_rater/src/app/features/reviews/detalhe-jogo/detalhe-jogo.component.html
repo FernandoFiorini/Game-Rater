@@ -80,7 +80,7 @@
     <div class="nota-geral">
       <app-score-ring [nota]="j.review.notaFinal" [tamanho]="120" [mostrarRotulo]="true" />
       @if (mustPlay()) {
-      <app-must-play class="must-play" [grande]="true" />
+      <app-must-play class="must-play" [grande]="true" [animar]="true" [epico]="obraPrima()" />
       }
 
     </div>

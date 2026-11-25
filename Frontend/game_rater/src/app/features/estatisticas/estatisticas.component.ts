@@ -9,6 +9,7 @@ import { ChartCardComponent } from '../../shared/components/charts/chart-card.co
 import { BarListComponent } from '../../shared/components/charts/bar-list.component';
 import { ColumnChartComponent } from '../../shared/components/charts/column-chart.component';
 import { ScoreRingComponent } from '../../shared/components/score-ring/score-ring.component';
+import { CorTextoPipe } from '../../shared/pipes/cor-texto.pipe';
 import { ImgUrlPipe } from '../../shared/pipes/img-url.pipe';
 
 const plural = (n: number, s: string, p: string) => `${n} ${n === 1 ? s : p}`;
@@ -16,7 +17,7 @@ const plural = (n: number, s: string, p: string) => `${n} ${n === 1 ? s : p}`;
 @Component({
   selector: 'app-estatisticas',
   standalone: true,
-  imports: [DecimalPipe, RouterLink, ChartCardComponent, BarListComponent, ColumnChartComponent, ScoreRingComponent, ImgUrlPipe],
+  imports: [DecimalPipe, RouterLink, ChartCardComponent, BarListComponent, ColumnChartComponent, ScoreRingComponent, ImgUrlPipe, CorTextoPipe],
   templateUrl: './estatisticas.component.html',
   styleUrl: './estatisticas.component.scss',
 })

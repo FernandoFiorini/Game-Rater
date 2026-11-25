@@ -71,7 +71,7 @@
                     @if (j.capaUrl) { <img [src]="j.capaUrl | imgUrl" alt="" /> } @else { <span class="sem"></span> }
                     <span class="nome">{{ j.nome }}</span>
                     <span class="rotulo">{{ j.rotulo }}</span>
-                    <span class="nota" [style.background]="j.cor">{{ j.notaFinal }}</span>
+                    <span class="nota" [style.background]="j.cor" [style.color]="j.cor | corTexto">{{ j.notaFinal }}</span>
                   </a>
                 </li>
               }

@@ -57,7 +57,7 @@
               <td><app-status-badge [status]="j.status" /></td>
               <td class="num">
                 @if (j.notaFinal != null) {
-                  <span class="nota" [style.background]="j.cor">{{ j.notaFinal }}</span>
+                  <span class="nota" [style.background]="j.cor" [style.color]="j.cor | corTexto">{{ j.notaFinal }}</span>
                 } @else { <span class="muted">—</span> }
               </td>
               <td>

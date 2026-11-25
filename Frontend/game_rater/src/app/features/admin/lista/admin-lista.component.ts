@@ -6,12 +6,13 @@ import { JogoCard, StatusJogo } from '../../../core/models/jogo.model';
 import { JogosService } from '../../../core/services/jogos.service';
 import { STATUS } from '../../../core/util/status';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { CorTextoPipe } from '../../../shared/pipes/cor-texto.pipe';
 import { ImgUrlPipe } from '../../../shared/pipes/img-url.pipe';
 
 @Component({
   selector: 'app-admin-lista',
   standalone: true,
-  imports: [RouterLink, DatePipe, StatusBadgeComponent, ImgUrlPipe],
+  imports: [RouterLink, DatePipe, StatusBadgeComponent, ImgUrlPipe, CorTextoPipe],
   templateUrl: './admin-lista.component.html',
   styleUrl: './admin-lista.component.scss',
 })

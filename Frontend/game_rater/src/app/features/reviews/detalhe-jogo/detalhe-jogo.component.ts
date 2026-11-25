@@ -63,6 +63,8 @@ export class DetalheJogoComponent {
   notasComTexto = computed(() => this.jogo()?.notas.filter((n) => n.texto) ?? []);
 
   mustPlay = computed(() => isMustPlay(this.jogo()?.review.notaFinal));
+  /** Obra-prima = animação épica do selo */
+  obraPrima = computed(() => this.lookups.faixa(this.jogo()?.review.notaFinal)?.rotulo === 'Obra-prima');
   sinopseAberta = signal(false);
 
   rotulo(nota: number | null): string | null {

@@ -4,12 +4,13 @@ import { JogoCard } from '../../../core/models/jogo.model';
 import { ImgUrlPipe } from '../../pipes/img-url.pipe';
 import { StatusBadgeComponent } from '../status-badge/status-badge.component';
 import { MustPlayComponent } from '../must-play/must-play.component';
+import { CorTextoPipe } from '../../pipes/cor-texto.pipe';
 import { isMustPlay } from '../../../core/util/must-play';
 
 @Component({
   selector: 'app-game-card',
   standalone: true,
-  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent, MustPlayComponent],
+  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent, MustPlayComponent, CorTextoPipe],
   template: `
     <a class="game-card" [routerLink]="['/jogo', jogo().slug]">
       <div class="capa">
@@ -22,7 +23,7 @@ import { isMustPlay } from '../../../core/util/must-play';
           <app-must-play class="must-play" />
         }
         @if (jogo().notaFinal != null) {
-          <div class="nota" [style.background]="jogo().cor">
+          <div class="nota" [style.background]="jogo().cor" [style.color]="jogo().cor | corTexto">
             {{ jogo().notaFinal }}
           </div>
         }
