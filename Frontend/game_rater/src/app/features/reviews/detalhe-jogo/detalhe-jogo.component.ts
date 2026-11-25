@@ -10,13 +10,18 @@ import { LookupsService } from '../../../core/services/lookups.service';
 import { ScoreRingComponent } from '../../../shared/components/score-ring/score-ring.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ImgUrlPipe } from '../../../shared/pipes/img-url.pipe';
+import { MustPlayComponent } from '../../../shared/components/must-play/must-play.component';
+import { isMustPlay } from '../../../core/util/must-play';
+import { GaleriaComponent } from '../../../shared/components/galeria/galeria.component';
+import { SpoilersDirective } from '../../../shared/directives/spoilers.directive';
+import { IconePlatinaComponent } from '../../../shared/components/icone-platina/icone-platina.component';
 
 type Estado = { carregando: true } | { carregando: false; jogo: JogoDetalhe | null };
 
 @Component({
   selector: 'app-detalhe-jogo',
   standalone: true,
-  imports: [RouterLink, DatePipe, DecimalPipe, ScoreRingComponent, StatusBadgeComponent, ImgUrlPipe],
+  imports: [RouterLink, DatePipe, DecimalPipe, ScoreRingComponent, StatusBadgeComponent, ImgUrlPipe, MustPlayComponent, GaleriaComponent, SpoilersDirective, IconePlatinaComponent],
   templateUrl: './detalhe-jogo.component.html',
   styleUrl: './detalhe-jogo.component.scss',
 })
@@ -53,10 +58,16 @@ export class DetalheJogoComponent {
     return (imgs.find((i) => i.tipo === 'banner') ?? imgs.find((i) => i.tipo === 'screenshot') ?? imgs[0])?.url ?? null;
   });
   screenshots = computed(() => this.jogo()?.imagens.filter((i) => i.tipo === 'screenshot') ?? []);
+  screenshotsUrls = computed(() => this.screenshots().map((i) => i.url));
   plataformasTexto = computed(() => this.jogo()?.plataformas.map((p) => p.nome).join(', ') ?? '');
   notasComTexto = computed(() => this.jogo()?.notas.filter((n) => n.texto) ?? []);
 
-  imagemAberta = signal<string | null>(null);
+  mustPlay = computed(() => isMustPlay(this.jogo()?.review.notaFinal));
+  sinopseAberta = signal(false);
+
+  rotulo(nota: number | null): string | null {
+    return this.lookups.faixa(nota)?.rotulo ?? null;
+  }
 
   cor(nota: number | null): string {
     return this.lookups.faixa(nota)?.cor ?? 'var(--text-muted)';

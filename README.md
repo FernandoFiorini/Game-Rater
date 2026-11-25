@@ -64,3 +64,9 @@ Para mudar pesos, categorias ou rótulos, edite as tabelas `categoria` / `faixa_
 
 - **Autenticação de admin** (`TODO(auth)`): hoje qualquer pessoa com acesso à API pode criar ou excluir. Precisa ser feita antes de publicar online.
 - **Notas do público** (`TODO(notas-publico)` em `001_schema.sql`): tabela `usuario` + `review.usuario_id`.
+- **Links de afiliado** (`TODO(afiliados)`): botões "Onde comprar" na página da review.
+  - Banco: nova migration com `jogo_link_compra (id, jogo_id → jogo ON DELETE CASCADE, loja, url, plataforma_id NULL, ordem)`.
+  - Editor: seção "Onde comprar" (opcional, disponível também em Quero jogar/Backlog).
+  - Página: botões perto do veredito + aviso "Links de afiliado: posso receber comissão por compras" (diretrizes do CONAR).
+  - Não guardar preço no banco (desatualiza); se um dia quiser, buscar ao vivo numa API de preços.
+  - Depende de o site estar no ar, ou seja, de `TODO(auth)` resolvido antes.

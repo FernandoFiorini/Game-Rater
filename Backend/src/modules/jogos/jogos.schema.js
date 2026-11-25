@@ -34,7 +34,10 @@ const jogoSchema = z.object({
 const reviewSchema = z
   .object({
     status: z.enum(STATUS).default('backlog'),
-    plataformaId: id.nullish(),
+    /** plataformas em que VOCÊ jogou (pode ser mais de uma) */
+    plataformaIds: z.array(id).default([]),
+    /** em quais dessas plataformas platinei (subconjunto de plataformaIds) */
+    platinadoIds: z.array(id).default([]),
     horasJogadas: z.coerce.number().min(0).max(99999).nullish(),
     dificuldade: textoOpcional,
     dtInicio: data,
@@ -45,6 +48,10 @@ const reviewSchema = z
     contras: z.array(z.string().trim().min(1)).default([]),
     notaManual: z.coerce.number().int().min(0).max(100).nullish(),
     publicada: z.boolean().default(false),
+  })
+  .refine((r) => r.platinadoIds.every((p) => r.plataformaIds.includes(p)), {
+    message: 'Platina marcada numa plataforma que não está em "Joguei no"',
+    path: ['platinadoIds'],
   })
   .refine((r) => !r.dtInicio || !r.dtConclusao || r.dtConclusao >= r.dtInicio, {
     message: 'Data de conclusão não pode ser anterior ao início',

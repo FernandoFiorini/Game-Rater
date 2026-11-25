@@ -15,7 +15,7 @@ const COLUNAS_CARD = `
   publicada,
   dt_publicacao AS "dtPublicacao",
   atualizado_em AS "atualizadoEm",
-  plataforma_id AS "plataformaId",
+  plataforma_ids AS "plataformaIds",
   plataforma,
   nota_final AS "notaFinal",
   rotulo, cor,
@@ -48,7 +48,7 @@ async function listar(f) {
   if (f.status?.length) where.push(`status = ANY(${p(f.status)})`);
   if (f.publicada !== undefined) where.push(`publicada = ${p(f.publicada)}`);
   if (f.generoId) where.push(`${p(f.generoId)} = ANY(genero_ids)`);
-  if (f.plataformaId) where.push(`plataforma_id = ${p(f.plataformaId)}`);
+  if (f.plataformaId) where.push(`${p(f.plataformaId)} = ANY(plataforma_ids)`);
 
   const sql = `
     SELECT ${COLUNAS_CARD}
@@ -73,7 +73,10 @@ async function obter(idOuSlug) {
        json_build_object(
          'id', r.id,
          'status', r.status,
-         'plataforma', CASE WHEN p.id IS NULL THEN NULL ELSE json_build_object('id', p.id, 'nome', p.nome) END,
+         'plataformas', COALESCE((
+           SELECT json_agg(json_build_object('id', p.id, 'nome', p.nome, 'sigla', p.sigla, 'platinado', rp.platinado) ORDER BY p.ordem, p.nome)
+             FROM review_plataforma rp JOIN plataforma p ON p.id = rp.plataforma_id
+            WHERE rp.review_id = r.id), '[]'::json),
          'horasJogadas', r.horas_jogadas,
          'dificuldade', r.dificuldade,
          'dtInicio', r.dt_inicio,
@@ -95,7 +98,6 @@ async function obter(idOuSlug) {
      JOIN review r               ON r.jogo_id = j.id
      JOIN vw_review_nota vn      ON vn.review_id = r.id
      JOIN vw_jogo_card card      ON card.id = j.id
-     LEFT JOIN plataforma p      ON p.id = r.plataforma_id
      LEFT JOIN faixa_etaria fe   ON fe.id = j.faixa_etaria_id
      WHERE ${porId ? 'j.id = $1' : 'j.slug = $1'}`,
     [porId ? Number(idOuSlug) : String(idOuSlug)],
@@ -157,6 +159,18 @@ async function gravarFilhos(client, jogoId, reviewId, dados) {
   await client.query('DELETE FROM jogo_plataforma WHERE jogo_id = $1', [jogoId]);
   await client.query('DELETE FROM jogo_imagem WHERE jogo_id = $1', [jogoId]);
   await client.query('DELETE FROM review_nota WHERE review_id = $1', [reviewId]);
+  await client.query('DELETE FROM review_plataforma WHERE review_id = $1', [reviewId]);
+
+  if (dados.review.plataformaIds.length) {
+    await client.query(
+      // platina só vale com status Platinado
+      `INSERT INTO review_plataforma (review_id, plataforma_id, platinado)
+       SELECT $1, p.id, ($4 = 'platinado' AND p.id = ANY($3::int[]))
+         FROM unnest($2::int[]) AS p(id)
+       ON CONFLICT DO NOTHING`,
+      [reviewId, dados.review.plataformaIds, dados.review.platinadoIds, dados.review.status],
+    );
+  }
 
   const { generoIds, plataformaIds } = dados.jogo;
 
@@ -196,7 +210,6 @@ async function gravarFilhos(client, jogoId, reviewId, dados) {
 
 const valoresReview = (r) => [
   r.status,
-  r.plataformaId ?? null,
   r.horasJogadas ?? null,
   r.dificuldade ?? null,
   r.dtInicio ?? null,
@@ -231,9 +244,12 @@ async function criar(dados) {
     );
 
     const { rows: [review] } = await client.query(
-      `INSERT INTO review (status, plataforma_id, horas_jogadas, dificuldade, dt_inicio, dt_conclusao,
+      `INSERT INTO review (status, horas_jogadas, dificuldade, dt_inicio, dt_conclusao,
                            prioridade, resumo, pros, contras, nota_manual, publicada, dt_publicacao, jogo_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CASE WHEN $12 THEN now() END, $13)
+       VALUES ($1, $2, $3, $4,
+               -- data de conclusão não aparece mais na tela: registrada automaticamente ao concluir
+               COALESCE($5::date, CASE WHEN $1 IN ('zerado', 'platinado') THEN current_date END),
+               $6, $7, $8, $9, $10, $11, CASE WHEN $11 THEN now() END, $12)
        RETURNING id`,
       [...valoresReview(dados.review), jogo.id],
     );
@@ -271,11 +287,12 @@ async function atualizar(id, dados) {
 
     await client.query(
       `UPDATE review SET
-         status = $1, plataforma_id = $2, horas_jogadas = $3, dificuldade = $4, dt_inicio = $5,
-         dt_conclusao = $6, prioridade = $7, resumo = $8, pros = $9, contras = $10,
-         nota_manual = $11, publicada = $12,
-         dt_publicacao = CASE WHEN $12 THEN COALESCE(dt_publicacao, now()) ELSE dt_publicacao END
-       WHERE id = $13`,
+         status = $1, horas_jogadas = $2, dificuldade = $3, dt_inicio = $4,
+         dt_conclusao = COALESCE($5::date, CASE WHEN $1 IN ('zerado', 'platinado') THEN COALESCE(dt_conclusao, current_date) END),
+         prioridade = $6, resumo = $7, pros = $8, contras = $9,
+         nota_manual = $10, publicada = $11,
+         dt_publicacao = CASE WHEN $11 THEN COALESCE(dt_publicacao, now()) ELSE dt_publicacao END
+       WHERE id = $12`,
       [...valoresReview(dados.review), atual.review_id],
     );
 
@@ -303,6 +320,18 @@ async function atualizarStatus(id, { status, prioridade }) {
     [status, prioridade ?? null, id, STATUS_CONCLUIDO, STATUS_SO_JOGO],
   );
   if (!rows.length) throw HttpError.naoEncontrado('Jogo não encontrado');
+
+  // platina por plataforma acompanha o status
+  if (status === 'platinado') {
+    // uma única plataforma: platinou nela
+    await pool.query(
+      `UPDATE review_plataforma SET platinado = true
+        WHERE review_id = $1 AND (SELECT count(*) FROM review_plataforma WHERE review_id = $1) = 1`,
+      [rows[0].id],
+    );
+  } else {
+    await pool.query('UPDATE review_plataforma SET platinado = false WHERE review_id = $1', [rows[0].id]);
+  }
 }
 
 async function excluir(id) {

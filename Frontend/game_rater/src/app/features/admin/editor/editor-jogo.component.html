@@ -85,14 +85,9 @@
           </div>
 
           <div class="field">
-            <span class="label">Classificação indicativa</span>
-            <app-chip-select formControlName="faixaEtariaId" [opcoes]="opcoesFaixaEtaria()" />
-          </div>
-
-          <div class="field">
             <label for="descricao">Sinopse</label>
             <textarea id="descricao" class="textarea" formControlName="descricao" rows="3"
-                      placeholder="Descrição oficial do jogo (não é a sua opinião — essa vai no veredito)"></textarea>
+                      placeholder="Do que o jogo trata, em poucas linhas (sua opinião vai no veredito)"></textarea>
           </div>
         </section>
 
@@ -113,16 +108,19 @@
             <div><h2>Minha experiência</h2><p>Contexto de como você jogou.</p></div>
           </header>
 
-          <div class="grid-3">
-            <div class="field">
-              <label for="plataformaId">Joguei no</label>
-              <select id="plataformaId" class="select" formControlName="plataformaId">
-                <option [ngValue]="null">—</option>
-                @for (p of lookups.lookups()?.plataformas ?? []; track p.id) {
-                  <option [ngValue]="p.id">{{ p.nome }}</option>
-                }
-              </select>
-            </div>
+          <div class="field">
+            <span class="label">Joguei no</span>
+            <app-chip-select formControlName="plataformaIds" [opcoes]="opcoesPlataformaJogada()" [multiplo]="true" />
+          </div>
+
+          @if (mostrarPlatina()) {
+          <div class="field">
+            <span class="label">Platinei no</span>
+            <app-chip-select formControlName="platinadoIds" [opcoes]="opcoesPlatina()" [multiplo]="true" />
+          </div>
+          }
+
+          <div class="grid-2">
             <div class="field">
               <label for="horas">Horas jogadas</label>
               <input id="horas" type="number" min="0" step="0.5" class="input" formControlName="horasJogadas" placeholder="Ex.: 32" />
@@ -137,16 +135,6 @@
             </div>
           </div>
 
-          <div class="grid-2">
-            <div class="field">
-              <label for="dtInicio">Comecei em</label>
-              <input id="dtInicio" type="date" class="input" formControlName="dtInicio" />
-            </div>
-            <div class="field">
-              <label for="dtConclusao">Terminei em</label>
-              <input id="dtConclusao" type="date" class="input" formControlName="dtConclusao" />
-            </div>
-          </div>
         </section>
 
         <!-- 4. NOTAS -->
@@ -200,7 +188,22 @@
 
                 <details class="justificativa" [open]="!!notasArray.at(i).controls.texto.value">
                   <summary>Justificativa</summary>
-                  <angular-editor formControlName="texto" [config]="editorNota" />
+                  <angular-editor formControlName="texto" [config]="editorNota">
+                    <ng-template #customButtons>
+                      <ae-toolbar-set>
+                        <button type="button" class="angular-editor-button botao-spoiler" title="Spoiler: borra o trecho selecionado até o leitor clicar (clique dentro de um spoiler para desfazer)"
+                                (mousedown)="$event.preventDefault()" (click)="alternarSpoiler()">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c7 0 10 8 10 8a13.2 13.2 0 0 1-1.67 2.68" />
+                            <path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 8 10 8a9.7 9.7 0 0 0 5.39-1.61" />
+                            <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                            <line x1="2" y1="2" x2="22" y2="22" />
+                          </svg>
+                          <span>Spoiler</span>
+                        </button>
+                      </ae-toolbar-set>
+                    </ng-template>
+                  </angular-editor>
                 </details>
               </div>
             }
@@ -216,7 +219,22 @@
 
           <div class="field">
             <span class="label">Resumo</span>
-            <angular-editor formControlName="resumo" [config]="editorResumo" />
+            <angular-editor formControlName="resumo" [config]="editorResumo">
+              <ng-template #customButtons>
+                <ae-toolbar-set>
+                  <button type="button" class="angular-editor-button botao-spoiler" title="Spoiler: borra o trecho selecionado até o leitor clicar (clique dentro de um spoiler para desfazer)"
+                          (mousedown)="$event.preventDefault()" (click)="alternarSpoiler()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c7 0 10 8 10 8a13.2 13.2 0 0 1-1.67 2.68" />
+                      <path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 8 10 8a9.7 9.7 0 0 0 5.39-1.61" />
+                      <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                      <line x1="2" y1="2" x2="22" y2="22" />
+                    </svg>
+                    <span>Spoiler</span>
+                  </button>
+                </ae-toolbar-set>
+              </ng-template>
+            </angular-editor>
           </div>
 
           <div class="grid-2">

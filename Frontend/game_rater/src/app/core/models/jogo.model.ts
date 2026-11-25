@@ -24,7 +24,9 @@ export interface JogoCard {
   publicada: boolean;
   dtPublicacao: string | null;
   atualizadoEm: string;
-  plataformaId: number | null;
+  /** plataformas em que joguei */
+  plataformaIds: number[];
+  /** siglas para exibição, ex.: "PS5 / PS4" */
   plataforma: string | null;
   notaFinal: number | null;
   rotulo: string | null;
@@ -47,7 +49,8 @@ export interface NotaCategoria {
 export interface Review {
   id: number;
   status: StatusJogo;
-  plataforma: ItemLookup | null;
+  /** plataformas em que joguei */
+  plataformas: (ItemLookup & { sigla: string | null; platinado: boolean })[];
   horasJogadas: number | null;
   dificuldade: string | null;
   dtInicio: string | null;
@@ -101,7 +104,9 @@ export interface SalvarJogo {
   };
   review: {
     status: StatusJogo;
-    plataformaId: number | null;
+    plataformaIds: number[];
+    /** plataformas (de plataformaIds) em que platinei */
+    platinadoIds: number[];
     horasJogadas: number | null;
     dificuldade: string | null;
     dtInicio: string | null;

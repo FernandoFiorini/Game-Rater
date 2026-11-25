@@ -329,11 +329,50 @@ input[type='date'].input::-webkit-calendar-picker-indicator {
 /* ---------- conteúdo rico (HTML do editor) --------------------------- */
 
 .rich {
-  color: var(--text-secondary);
-  line-height: 1.7;
+  color: #d6d5cf;
+  font-size: 16px;
+  line-height: 1.75;
+  overflow-wrap: break-word;
 
-  p {
-    margin: 0 0 12px;
+  p,
+  div {
+    margin: 0 0 1em;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  /* parágrafos vazios que o editor deixa no fim do texto */
+  p:empty,
+  p:has(> br:only-child),
+  p:has(> span:only-child > br:only-child) {
+    display: none;
+  }
+
+  strong,
+  b {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 1em;
+    padding-left: 1.3em;
+  }
+
+  li + li {
+    margin-top: 0.35em;
+  }
+
+  /* neutraliza estilos colados de outros sites (cor, fonte, fundo) */
+  span:not(.spoiler),
+  font {
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    background: transparent !important;
   }
 
   a {
@@ -349,6 +388,64 @@ input[type='date'].input::-webkit-calendar-picker-indicator {
     color: var(--text-primary);
     font-style: italic;
   }
+}
+
+/* ---------- spoiler ---------------------------------------------------
+   Aplicado no editor (menu de estilos → "Spoiler") como <span class="spoiler">. */
+
+.rich .spoiler {
+  filter: blur(6px);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0 2px;
+  cursor: pointer;
+  user-select: none;
+  transition: filter 0.2s, background 0.2s;
+
+  &:hover {
+    filter: blur(4px);
+    background: rgba(139, 92, 246, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #8b5cf6;
+    outline-offset: 2px;
+  }
+
+  &.revelado {
+    filter: none;
+    user-select: text;
+    background: rgba(139, 92, 246, 0.14);
+    box-shadow: inset 0 -1px 0 rgba(139, 92, 246, 0.6);
+  }
+}
+
+/* botão "Spoiler" na barra do editor */
+.angular-editor .angular-editor-toolbar .angular-editor-button.botao-spoiler {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 0 10px;
+  font: 600 12px var(--font);
+
+  svg,
+  svg path {
+    fill: none !important; // ícone de traço, não preenchido
+  }
+
+  &:hover {
+    background: rgba(139, 92, 246, 0.25) !important;
+    border-color: rgba(139, 92, 246, 0.7) !important;
+  }
+}
+
+/* no editor o trecho fica legível, só marcado */
+.angular-editor-textarea .spoiler {
+  background: rgba(139, 92, 246, 0.2);
+  outline: 1px dashed rgba(139, 92, 246, 0.8);
+  border-radius: 3px;
+  padding: 0 2px;
 }
 
 /* ---------- angular-editor (tema escuro) ----------------------------- */

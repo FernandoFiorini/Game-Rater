@@ -3,11 +3,13 @@ import { RouterLink } from '@angular/router';
 import { JogoCard } from '../../../core/models/jogo.model';
 import { ImgUrlPipe } from '../../pipes/img-url.pipe';
 import { StatusBadgeComponent } from '../status-badge/status-badge.component';
+import { MustPlayComponent } from '../must-play/must-play.component';
+import { isMustPlay } from '../../../core/util/must-play';
 
 @Component({
   selector: 'app-game-card',
   standalone: true,
-  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent],
+  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent, MustPlayComponent],
   template: `
     <a class="game-card" [routerLink]="['/jogo', jogo().slug]">
       <div class="capa">
@@ -15,6 +17,9 @@ import { StatusBadgeComponent } from '../status-badge/status-badge.component';
           <img [src]="jogo().capaUrl | imgUrl" [alt]="'Capa de ' + jogo().nome" loading="lazy" />
         } @else {
           <div class="sem-capa">{{ iniciais() }}</div>
+        }
+        @if (mustPlay()) {
+          <app-must-play class="must-play" />
         }
         @if (jogo().notaFinal != null) {
           <div class="nota" [style.background]="jogo().cor">
@@ -60,6 +65,7 @@ import { StatusBadgeComponent } from '../status-badge/status-badge.component';
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     }
     .flag { position: absolute; left: 10px; bottom: 10px; }
+    .must-play { position: absolute; left: 10px; bottom: 10px; }
     .info { padding: 10px 2px 0; }
     .nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .meta { font-size: 13px; color: var(--text-muted); }
@@ -68,6 +74,8 @@ import { StatusBadgeComponent } from '../status-badge/status-badge.component';
 })
 export class GameCardComponent {
   jogo = input.required<JogoCard>();
+
+  mustPlay = computed(() => this.jogo().publicada && isMustPlay(this.jogo().notaFinal));
 
   ano = computed(() => this.jogo().dtLancamento?.slice(0, 4) ?? null);
   iniciais = computed(() =>

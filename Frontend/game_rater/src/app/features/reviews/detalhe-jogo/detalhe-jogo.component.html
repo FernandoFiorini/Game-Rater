@@ -1,169 +1,166 @@
 @if (carregando()) {
-  <div class="page"><div class="carregando">Carregando…</div></div>
+<div class="page">
+  <div class="carregando">Carregando…</div>
+</div>
 } @else {
 @if (jogo(); as j) {
-  <!-- ===== HERO ===== -->
-  <section class="hero">
-    @if (banner()) {
-      <div class="hero-bg" [style.background-image]="'url(' + (banner() | imgUrl) + ')'"></div>
+<!-- ===== HERO ===== -->
+<section class="hero">
+  @if (banner()) {
+  <div class="hero-bg" [style.background-image]="'url(' + (banner() | imgUrl) + ')'"></div>
+  }
+  <div class="hero-inner">
+    <div class="capa">
+      @if (capa()) {
+      <img [src]="capa() | imgUrl" [alt]="'Capa de ' + j.nome" />
+      } @else {
+      <div class="sem-capa">{{ j.nome.charAt(0) }}</div>
+      }
+    </div>
+
+    <div class="hero-info">
+      @if (!j.review.publicada) {
+      <div class="rascunho">Rascunho — esta review não está publicada</div>
+      }
+      <h1>{{ j.nome }}</h1>
+      <p class="meta">
+        @if (j.desenvolvedora) { <span><strong>Desenvolvedora:</strong> {{ j.desenvolvedora }}</span> }
+        @if (j.publisher) { <span><strong>Publisher:</strong> {{ j.publisher }}</span> }
+        @if (j.dtLancamento) { <span><strong>Lançamento:</strong> {{ j.dtLancamento | date: 'd MMM y' }}</span> }
+      </p>
+      @if (j.descricao) {
+      <p class="sinopse" [class.aberta]="sinopseAberta()">{{ j.descricao }}</p>
+      @if (j.descricao.length > 260) {
+      <button type="button" class="ler-mais" (click)="sinopseAberta.set(!sinopseAberta())">
+        {{ sinopseAberta() ? 'Ler menos' : 'Ler mais' }}
+      </button>
+      }
+      }
+      <div class="tags">
+        @for (g of j.generos; track g.id) { <span class="chip">{{ g.nome }}</span> }
+      </div>
+      @if (plataformasTexto()) {
+      <p class="plataformas">Disponível para: {{ plataformasTexto() }}</p>
+      }
+    </div>
+
+    <a class="btn editar" [routerLink]="['/admin/jogos', j.id, 'editar']">Editar</a>
+  </div>
+</section>
+
+<div class="page conteudo">
+  <!-- ===== CONTEXTO ===== -->
+  <section class="contexto">
+    <div class="item"><span class="lbl">Status</span><app-status-badge [status]="j.review.status" /></div>
+    @if (j.review.plataformas.length) {
+    <div class="item">
+      <span class="lbl">Joguei no</span>
+      <span class="joguei-no">
+        @for (p of j.review.plataformas; track p.id; let ultimo = $last) {
+        <span class="plat" [attr.title]="p.platinado ? 'Platinado no ' + (p.sigla ?? p.nome) : null">
+          {{ p.sigla ?? p.nome }}
+          @if (p.platinado) { <app-icone-platina [tamanho]="16" /> }
+        </span>
+        @if (!ultimo) { <span class="sep" aria-hidden="true">·</span> }
+        }
+      </span>
+    </div>
     }
-    <div class="hero-inner">
-      <div class="capa">
-        @if (capa()) {
-          <img [src]="capa() | imgUrl" [alt]="'Capa de ' + j.nome" />
-        } @else {
-          <div class="sem-capa">{{ j.nome.charAt(0) }}</div>
-        }
-      </div>
+    @if (j.review.horasJogadas != null) {
+    <div class="item"><span class="lbl">Tempo de jogo</span><span>{{ j.review.horasJogadas | number: '1.0-1' }} h</span>
+    </div>
+    }
+    @if (j.review.dificuldade) {
+    <div class="item"><span class="lbl">Dificuldade</span><span>{{ j.review.dificuldade }}</span></div>
+    }
+  </section>
 
-      <div class="hero-info">
-        @if (!j.review.publicada) {
-          <div class="rascunho">Rascunho — esta review não está publicada</div>
-        }
-        <h1>{{ j.nome }}</h1>
-        <p class="meta">
-          @if (j.desenvolvedora) { <span><strong>Desenvolvedora:</strong> {{ j.desenvolvedora }}</span> }
-          @if (j.publisher) { <span><strong>Publisher:</strong> {{ j.publisher }}</span> }
-          @if (j.dtLancamento) { <span><strong>Lançamento:</strong> {{ j.dtLancamento | date: 'd MMM y' }}</span> }
-          @if (j.faixaEtaria) { <span><strong>Classificação:</strong> {{ j.faixaEtaria.nome }}</span> }
-        </p>
-        <div class="tags">
-          @for (g of j.generos; track g.id) { <span class="chip">{{ g.nome }}</span> }
-        </div>
-        @if (plataformasTexto()) {
-          <p class="plataformas">Disponível em: {{ plataformasTexto() }}</p>
-        }
-      </div>
+  <!-- ===== PAINEL DE NOTA ===== -->
+  <section class="painel-nota">
+    <div class="nota-geral">
+      <app-score-ring [nota]="j.review.notaFinal" [tamanho]="120" [mostrarRotulo]="true" />
+      @if (mustPlay()) {
+      <app-must-play class="must-play" [grande]="true" />
+      }
 
-      <a class="btn editar" [routerLink]="['/admin/jogos', j.id, 'editar']">Editar</a>
+    </div>
+
+    <div class="barras">
+      @for (n of j.notas; track n.categoriaId) {
+      <button type="button" class="barra-linha" (click)="irPara(n.categoriaId)" [disabled]="!n.texto"
+        [attr.aria-label]="n.categoria + ': ' + (n.nota ?? 'não se aplica')">
+        <span class="barra-topo">
+          <span class="cat">{{ n.categoria }}</span>
+          <span class="valor">{{ n.nota ?? 'N/A' }}</span>
+        </span>
+        <span class="trilho">
+          @if (n.nota != null) {
+          <span class="preenchido" [style.width.%]="n.nota" [style.background]="cor(n.nota)"></span>
+          }
+        </span>
+      </button>
+      }
     </div>
   </section>
 
-  <div class="page conteudo">
-    <!-- ===== PAINEL DE NOTA ===== -->
-    <section class="painel-nota">
-      <div class="nota-geral">
-        <app-score-ring [nota]="j.review.notaFinal" [tamanho]="120" [mostrarRotulo]="true" />
-        <p class="como">
-          @if (j.review.notaManual != null) {
-            Nota definida manualmente
-            @if (j.review.notaCalculada != null) { <br />(média ponderada: {{ j.review.notaCalculada }}) }
-          } @else {
-            Média ponderada das categorias
-          }
-        </p>
+  <!-- ===== ANÁLISE POR CATEGORIA ===== -->
+  @if (notasComTexto().length) {
+  <section class="analise">
+    <h2>Análise por categoria</h2>
+    @for (n of notasComTexto(); track n.categoriaId) {
+    <article class="categoria" [id]="'categoria-' + n.categoriaId" [style.--cor]="cor(n.nota)">
+      <div class="cat-nota" [attr.aria-label]="'Nota ' + (n.nota ?? 'não se aplica')">
+        <span class="cat-numero">{{ n.nota ?? 'N/A' }}</span>
+        @if (rotulo(n.nota); as r) { <span class="cat-rotulo">{{ r }}</span> }
       </div>
-
-      <div class="barras">
-        @for (n of j.notas; track n.categoriaId) {
-          <button type="button" class="barra-linha" (click)="irPara(n.categoriaId)" [disabled]="!n.texto"
-                  [attr.aria-label]="n.categoria + ': ' + (n.nota ?? 'não se aplica')">
-            <span class="barra-topo">
-              <span class="cat">{{ n.categoria }} <span class="peso" title="Peso na média">×{{ n.peso | number: '1.0-2' }}</span></span>
-              <span class="valor">{{ n.nota ?? 'N/A' }}</span>
-            </span>
-            <span class="trilho">
-              @if (n.nota != null) {
-                <span class="preenchido" [style.width.%]="n.nota" [style.background]="cor(n.nota)"></span>
-              }
-            </span>
-          </button>
-        }
+      <div class="cat-corpo">
+        <h3>{{ n.categoria }}</h3>
+        <div class="rich" appSpoilers [innerHTML]="n.texto"></div>
       </div>
-    </section>
-
-    <!-- ===== CONTEXTO ===== -->
-    <section class="contexto">
-      <div class="item"><span class="lbl">Status</span><app-status-badge [status]="j.review.status" /></div>
-      @if (j.review.plataforma) {
-        <div class="item"><span class="lbl">Joguei no</span><span>{{ j.review.plataforma.nome }}</span></div>
-      }
-      @if (j.review.horasJogadas != null) {
-        <div class="item"><span class="lbl">Tempo de jogo</span><span>{{ j.review.horasJogadas | number: '1.0-1' }} h</span></div>
-      }
-      @if (j.review.dificuldade) {
-        <div class="item"><span class="lbl">Dificuldade</span><span>{{ j.review.dificuldade }}</span></div>
-      }
-      @if (j.review.dtInicio || j.review.dtConclusao) {
-        <div class="item">
-          <span class="lbl">Período</span>
-          <span>{{ (j.review.dtInicio | date: 'dd/MM/yy') ?? '?' }} → {{ (j.review.dtConclusao | date: 'dd/MM/yy') ?? '…' }}</span>
-        </div>
-      }
-    </section>
-
-    <!-- ===== VEREDITO ===== -->
-    @if (j.review.resumo || j.review.pros.length || j.review.contras.length) {
-      <section class="veredito">
-        <h2>Veredito</h2>
-        @if (j.review.resumo) {
-          <div class="rich" [innerHTML]="j.review.resumo"></div>
-        }
-        @if (j.review.pros.length || j.review.contras.length) {
-          <div class="pros-contras">
-            <div class="card pros">
-              <h3>Pontos positivos</h3>
-              <ul>@for (p of j.review.pros; track $index) { <li>{{ p }}</li> }</ul>
-            </div>
-            <div class="card contras">
-              <h3>Pontos negativos</h3>
-              <ul>@for (c of j.review.contras; track $index) { <li>{{ c }}</li> }</ul>
-            </div>
-          </div>
-        }
-      </section>
+    </article>
     }
-
-    <!-- ===== ANÁLISE POR CATEGORIA ===== -->
-    @if (notasComTexto().length) {
-      <section class="analise">
-        <h2>Análise por categoria</h2>
-        @for (n of notasComTexto(); track n.categoriaId) {
-          <article class="categoria" [id]="'categoria-' + n.categoriaId">
-            <header>
-              <h3>{{ n.categoria }}</h3>
-              <span class="pill" [style.background]="cor(n.nota)">{{ n.nota ?? 'N/A' }}</span>
-            </header>
-            <div class="rich" [innerHTML]="n.texto"></div>
-          </article>
-        }
-      </section>
-    }
-
-    <!-- ===== SOBRE O JOGO ===== -->
-    @if (j.descricao) {
-      <section class="sobre">
-        <h2>Sobre o jogo</h2>
-        <p class="secondary">{{ j.descricao }}</p>
-      </section>
-    }
-
-    <!-- ===== GALERIA ===== -->
-    @if (screenshots().length) {
-      <section class="galeria">
-        <h2>Galeria</h2>
-        <div class="grid-imagens">
-          @for (s of screenshots(); track s.url) {
-            <button type="button" (click)="imagemAberta.set(s.url)" aria-label="Ampliar imagem">
-              <img [src]="s.url | imgUrl" alt="" loading="lazy" />
-            </button>
-          }
-        </div>
-      </section>
-    }
-  </div>
-
-  @if (imagemAberta()) {
-    <div class="lightbox" (click)="imagemAberta.set(null)" (keydown.escape)="imagemAberta.set(null)" tabindex="-1" role="dialog">
-      <img [src]="imagemAberta() | imgUrl" alt="" />
-    </div>
+  </section>
   }
-} @else {
-  <div class="page">
-    <div class="empty">
-      <p>Jogo não encontrado.</p>
-      <a class="btn" routerLink="/">Voltar para as reviews</a>
+
+  <!-- ===== VEREDITO ===== -->
+  @if (j.review.resumo || j.review.pros.length || j.review.contras.length) {
+  <section class="veredito">
+    <h2>Veredito</h2>
+    @if (j.review.resumo) {
+    <div class="rich" appSpoilers [innerHTML]="j.review.resumo"></div>
+    }
+    @if (j.review.pros.length || j.review.contras.length) {
+    <div class="pros-contras">
+      <div class="card pros">
+        <h3>Pontos positivos</h3>
+        <ul>@for (p of j.review.pros; track $index) { <li>{{ p }}</li> }</ul>
+      </div>
+      <div class="card contras">
+        <h3>Pontos negativos</h3>
+        <ul>@for (c of j.review.contras; track $index) { <li>{{ c }}</li> }</ul>
+      </div>
     </div>
+    }
+  </section>
+  }
+
+  <!-- TODO(afiliados): botões "Onde comprar" (links de afiliado) + aviso de comissão. Ver README. -->
+
+  <!-- ===== GALERIA ===== -->
+  @if (screenshots().length) {
+  <section class="galeria">
+    <h2>Galeria</h2>
+    <app-galeria [imagens]="screenshotsUrls()" />
+  </section>
+  }
+</div>
+
+} @else {
+<div class="page">
+  <div class="empty">
+    <p>Jogo não encontrado.</p>
+    <a class="btn" routerLink="/">Voltar para as reviews</a>
   </div>
+</div>
 }
 }

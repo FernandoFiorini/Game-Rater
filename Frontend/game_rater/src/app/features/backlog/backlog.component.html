@@ -55,5 +55,41 @@
         </section>
       }
     </div>
+
+    <!-- ===== PARA AVALIAR ===== -->
+    <section class="para-avaliar">
+      <header class="pa-cab">
+        <div>
+          <h2>Para avaliar <span class="contador">{{ paraAvaliar()?.length ?? 0 }}</span></h2>
+          <p class="desc">Jogos que já joguei e ainda não têm review publicada.</p>
+        </div>
+        @if ((paraAvaliar()?.length ?? 0) > 6) {
+          <input class="input pa-busca" type="search" placeholder="Buscar…" aria-label="Buscar jogos para avaliar"
+                 [value]="buscaAvaliar()" (input)="buscaAvaliar.set($any($event.target).value)" />
+        }
+      </header>
+
+      <div class="pa-grade">
+        @for (jogo of paraAvaliarFiltrados(); track jogo.id) {
+          <a class="pa-item" [routerLink]="['/admin/jogos', jogo.id, 'editar']" fragment="notas" [title]="jogo.nome">
+            <span class="thumb">
+              @if (jogo.capaUrl) {
+                <img [src]="jogo.capaUrl | imgUrl" alt="" loading="lazy" />
+              } @else {
+                <span>{{ jogo.nome.charAt(0) }}</span>
+              }
+            </span>
+            <span class="corpo">
+              <span class="nome">{{ jogo.nome }}</span>
+              <span class="meta">{{ jogo.plataforma ?? '—' }}@if (jogo.dtConclusao) { · {{ jogo.dtConclusao.slice(0, 4) }} }</span>
+              <app-status-badge [status]="jogo.status" />
+            </span>
+            <span class="pa-acao" aria-hidden="true">Avaliar →</span>
+          </a>
+        } @empty {
+          <div class="vazio">{{ buscaAvaliar() ? 'Nenhum jogo encontrado.' : 'Nenhuma review pendente. 🎉' }}</div>
+        }
+      </div>
+    </section>
   }
 </div>

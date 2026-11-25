@@ -1,5 +1,7 @@
 import { Component, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ICONE_PLATINA } from '../../../core/util/status';
+import { IconePlatinaComponent } from '../icone-platina/icone-platina.component';
 
 export interface OpcaoChip<T = number | string> {
   valor: T;
@@ -14,6 +16,7 @@ export interface OpcaoChip<T = number | string> {
 @Component({
   selector: 'app-chip-select',
   standalone: true,
+  imports: [IconePlatinaComponent],
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ChipSelectComponent), multi: true }],
   template: `
     <div class="chips" role="group">
@@ -23,7 +26,8 @@ export interface OpcaoChip<T = number | string> {
                 [attr.aria-pressed]="selecionado(op.valor)"
                 [disabled]="desabilitado()"
                 (click)="alternar(op.valor)">
-          @if (op.icone) { <span aria-hidden="true">{{ op.icone }}</span> }
+          @if (op.icone === iconePlatina) { <app-icone-platina [tamanho]="15" /> }
+          @else if (op.icone) { <span aria-hidden="true">{{ op.icone }}</span> }
           {{ op.rotulo }}
         </button>
       }
@@ -45,6 +49,8 @@ export interface OpcaoChip<T = number | string> {
   `,
 })
 export class ChipSelectComponent implements ControlValueAccessor {
+  readonly iconePlatina = ICONE_PLATINA;
+
   opcoes = input.required<OpcaoChip[]>();
   multiplo = input(false);
   /** Em seleção única: permite desmarcar clicando no ativo */

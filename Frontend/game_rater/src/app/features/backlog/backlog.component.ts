@@ -5,6 +5,7 @@ import { JogoCard, StatusJogo } from '../../core/models/jogo.model';
 import { JogosService } from '../../core/services/jogos.service';
 import { STATUS, STATUS_PENDENTES, infoStatus } from '../../core/util/status';
 import { ImgUrlPipe } from '../../shared/pipes/img-url.pipe';
+import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 
 const COLUNAS: { status: StatusJogo; descricao: string }[] = [
   { status: 'jogando', descricao: 'O que estou jogando agora' },
@@ -15,7 +16,7 @@ const COLUNAS: { status: StatusJogo; descricao: string }[] = [
 @Component({
   selector: 'app-backlog',
   standalone: true,
-  imports: [RouterLink, ImgUrlPipe],
+  imports: [RouterLink, ImgUrlPipe, StatusBadgeComponent],
   templateUrl: './backlog.component.html',
   styleUrl: './backlog.component.scss',
 })
@@ -30,6 +31,16 @@ export class BacklogComponent {
   infoStatus = infoStatus;
 
   jogos = signal<JogoCard[] | null>(null);
+
+  /** Já jogados, mas sem review publicada: a fila de reviews a escrever. */
+  paraAvaliar = signal<JogoCard[] | null>(null);
+  buscaAvaliar = signal('');
+  paraAvaliarFiltrados = computed(() => {
+    const termo = this.buscaAvaliar().trim().toLowerCase();
+    return (this.paraAvaliar() ?? [])
+      .filter((j) => !termo || j.nome.toLowerCase().includes(termo))
+      .sort((a, b) => (b.dtConclusao ?? '').localeCompare(a.dtConclusao ?? ''));
+  });
 
   colunas = computed(() =>
     COLUNAS.map((c) => ({
@@ -47,6 +58,9 @@ export class BacklogComponent {
     this.jogosService
       .listar({ status: STATUS_PENDENTES, ordem: 'prioridade' })
       .subscribe((j) => this.jogos.set(j));
+    this.jogosService
+      .listar({ status: ['zerado', 'platinado', 'abandonado'], publicada: false })
+      .subscribe((j) => this.paraAvaliar.set(j));
   }
 
   mover(jogo: JogoCard, status: StatusJogo) {

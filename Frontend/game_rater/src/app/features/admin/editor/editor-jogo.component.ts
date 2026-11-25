@@ -5,14 +5,14 @@ import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Va
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AngularEditorConfig, AngularEditorModule } from '@kolkov/angular-editor';
 import { ToastrService } from 'ngx-toastr';
-import { combineLatest, of } from 'rxjs';
+import { combineLatest, merge, of } from 'rxjs';
 
 import { JogoExterno } from '../../../core/models/externo.model';
 import { ImagemJogo, JogoDetalhe, SalvarJogo, StatusJogo } from '../../../core/models/jogo.model';
 import { Categoria } from '../../../core/models/lookups.model';
 import { JogosService } from '../../../core/services/jogos.service';
 import { LookupsService } from '../../../core/services/lookups.service';
-import { STATUS, STATUS_SO_JOGO, infoStatus } from '../../../core/util/status';
+import { ICONE_PLATINA, STATUS, STATUS_SO_JOGO, infoStatus } from '../../../core/util/status';
 import { ChipSelectComponent, OpcaoChip } from '../../../shared/components/chip-select/chip-select.component';
 import { ScoreRingComponent } from '../../../shared/components/score-ring/score-ring.component';
 import { TagInputComponent } from '../../../shared/components/tag-input/tag-input.component';
@@ -36,7 +36,9 @@ const configEditor = (placeholder: string, altura: string): AngularEditorConfig 
   defaultParagraphSeparator: 'p',
   sanitize: true,
   toolbarHiddenButtons: BARRA_SIMPLES,
-  customClasses: [{ name: 'Citação', class: 'quote', tag: 'blockquote' }],
+  customClasses: [
+    { name: 'Citação', class: 'quote', tag: 'blockquote' },
+  ],
 });
 
 const NOTA_INICIAL = 70;
@@ -100,7 +102,8 @@ export class EditorJogoComponent {
     }),
     review: this.fb.group({
       status: ['zerado' as StatusJogo],
-      plataformaId: [null as number | null],
+      plataformaIds: [[] as number[]],
+      platinadoIds: [[] as number[]],
       horasJogadas: [null as number | null, [Validators.min(0)]],
       dificuldade: [''],
       dtInicio: [''],
@@ -129,8 +132,9 @@ export class EditorJogoComponent {
   opcoesPlataforma = computed<OpcaoChip[]>(() =>
     (this.lookups.lookups()?.plataformas ?? []).map((p) => ({ valor: p.id, rotulo: p.nome })),
   );
-  opcoesFaixaEtaria = computed<OpcaoChip[]>(() =>
-    (this.lookups.lookups()?.faixasEtarias ?? []).map((f) => ({ valor: f.id, rotulo: f.nome })),
+  /** "Joguei no": siglas (PS5, PS4…) para ficar compacto */
+  opcoesPlataformaJogada = computed<OpcaoChip[]>(() =>
+    (this.lookups.lookups()?.plataformas ?? []).map((p) => ({ valor: p.id, rotulo: p.sigla ?? p.nome })),
   );
 
   status = computed(() => (this.valores().review?.status ?? 'zerado') as StatusJogo);
@@ -171,12 +175,27 @@ export class EditorJogoComponent {
 
   podePublicar = computed(() => this.notaFinal() != null);
 
+  /** "Platinei no": só as plataformas marcadas em "Joguei no", com o troféu de platina */
+  opcoesPlatina = computed<OpcaoChip[]>(() => {
+    const marcadas = (this.valores().review?.plataformaIds ?? []) as number[];
+    return this.opcoesPlataformaJogada()
+      .filter((o) => marcadas.includes(o.valor as number))
+      .map((o) => ({ ...o, icone: ICONE_PLATINA }));
+  });
+  mostrarPlatina = computed(() => this.status() === 'platinado' && this.opcoesPlatina().length > 0);
+
   constructor() {
     const idParam = this.route.snapshot.paramMap.get('id');
     const statusInicial = this.route.snapshot.queryParamMap.get('status') as StatusJogo | null;
     if (statusInicial && STATUS.some((s) => s.valor === statusInicial)) {
       this.form.controls.review.controls.status.setValue(statusInicial);
     }
+
+    // mantém "Platinei no" coerente com o status e com "Joguei no"
+    const rv = this.form.controls.review.controls;
+    merge(rv.status.valueChanges, rv.plataformaIds.valueChanges)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.sincronizarPlatina());
 
     combineLatest([this.lookups.lookups$, idParam ? this.jogosService.obter(idParam) : of(null)])
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -190,6 +209,16 @@ export class EditorJogoComponent {
         },
         error: () => this.router.navigate(['/admin']),
       });
+  }
+
+  private sincronizarPlatina() {
+    const rv = this.form.controls.review.controls;
+    const plats = rv.plataformaIds.value ?? [];
+    const atual = rv.platinadoIds.value ?? [];
+    let novo = atual.filter((id) => plats.includes(id));
+    if (rv.status.value !== 'platinado') novo = [];
+    else if (!novo.length && plats.length === 1) novo = [plats[0]]; // uma plataforma só: platinou nela
+    if (novo.length !== atual.length || novo.some((id, i) => id !== atual[i])) rv.platinadoIds.setValue(novo);
   }
 
   // ---------- montagem ----------
@@ -230,7 +259,8 @@ export class EditorJogoComponent {
       },
       review: {
         status: j.review.status,
-        plataformaId: j.review.plataforma?.id ?? null,
+        plataformaIds: j.review.plataformas.map((p) => p.id),
+        platinadoIds: j.review.plataformas.filter((p) => p.platinado).map((p) => p.id),
         horasJogadas: j.review.horasJogadas,
         dificuldade: j.review.dificuldade ?? '',
         dtInicio: j.review.dtInicio ?? '',
@@ -283,9 +313,9 @@ export class EditorJogoComponent {
     const jogo = this.form.controls.jogo;
     const atual = jogo.getRawValue();
 
+    // sinopse não é importada (IGDB/RAWG só têm em inglês): é escrita à mão
     jogo.patchValue({
       nome: d.nome,
-      descricao: d.descricao ?? atual.descricao,
       dtLancamento: d.dtLancamento ?? atual.dtLancamento,
       desenvolvedora: d.desenvolvedora ?? atual.desenvolvedora,
       publisher: d.publisher ?? atual.publisher,
@@ -298,8 +328,8 @@ export class EditorJogoComponent {
 
     // se o jogo só saiu em uma plataforma, já marca como a plataforma jogada
     const review = this.form.controls.review.controls;
-    if (!review.plataformaId.value && d.plataformaIds.length === 1) {
-      review.plataformaId.setValue(d.plataformaIds[0]);
+    if (!review.plataformaIds.value?.length && d.plataformaIds.length === 1) {
+      review.plataformaIds.setValue([d.plataformaIds[0]]);
     }
 
     // imagens: substitui capa/banner e screenshots externos; mantém uploads locais
@@ -324,6 +354,73 @@ export class EditorJogoComponent {
     }
   }
 
+  /**
+   * Botão "Spoiler" da barra do editor: envolve a seleção em <span class="spoiler">
+   * mantendo a formatação interna. Com o cursor dentro de um spoiler, desfaz.
+   * Usa execCommand('insertHTML'), que dispara "input" e atualiza o formulário.
+   */
+  alternarSpoiler() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    const no = range.commonAncestorContainer;
+    const el = no instanceof Element ? no : no.parentElement;
+    const editavel = el?.closest('.angular-editor-textarea');
+    if (!el || !editavel) {
+      this.toastr.info('Selecione o trecho dentro do texto.');
+      return;
+    }
+
+    // cursor/seleção dentro de um spoiler existente: remove o spoiler
+    const existente = el.closest('.spoiler');
+    if (existente && editavel.contains(existente)) {
+      const r = document.createRange();
+      r.selectNode(existente);
+      sel.removeAllRanges();
+      sel.addRange(r);
+      document.execCommand('insertHTML', false, existente.innerHTML);
+      return;
+    }
+
+    if (range.collapsed) {
+      this.toastr.info('Selecione o trecho que é spoiler e clique no botão.');
+      return;
+    }
+
+    const temp = document.createElement('div');
+    temp.appendChild(range.cloneContents());
+    if (temp.querySelector('p, div, li, ul, ol, blockquote, h1, h2, h3')) {
+      this.toastr.info('O spoiler funciona dentro de um parágrafo. Selecione um trecho sem quebra de linha.');
+      return;
+    }
+    // evita spoiler dentro de spoiler
+    temp.querySelectorAll('.spoiler').forEach((s) => s.replaceWith(...Array.from(s.childNodes)));
+    // ZWSP (​) depois do spoiler: dá ao cursor um lugar "fora" do trecho,
+    // para o texto digitado em seguida não entrar no spoiler (igual ao negrito)
+    document.execCommand('insertHTML', false, `<span class="spoiler">${temp.innerHTML}</span>​`);
+    this.cursorDepoisDoSpoiler();
+  }
+
+  /** Se o cursor ficou dentro de um spoiler, move para logo depois dele (após o ZWSP). */
+  private cursorDepoisDoSpoiler() {
+    const sel = window.getSelection();
+    const no = sel?.anchorNode;
+    const el = no instanceof Element ? no : no?.parentElement;
+    const spoiler = el?.closest('.spoiler');
+    if (!sel || !spoiler) return;
+
+    let depois = spoiler.nextSibling;
+    if (!(depois instanceof Text) || !depois.data.startsWith('​')) {
+      depois = document.createTextNode('​');
+      spoiler.after(depois);
+    }
+    const r = document.createRange();
+    r.setStart(depois, 1);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+
   salvar(publicar?: boolean) {
     if (publicar !== undefined) this.form.controls.review.controls.publicada.setValue(publicar);
 
@@ -338,7 +435,9 @@ export class EditorJogoComponent {
     const vazio = (s: string | null | undefined) => (s?.trim() ? s.trim() : null);
     const textoRico = (s: string | null | undefined) => {
       const limpo = (s ?? '').replace(/<[^>]*>|&nbsp;/g, '').trim();
-      return limpo ? s! : null;
+      if (!limpo) return null;
+      // remove parágrafos vazios (<p><br></p>, <p><span><br></span></p>…) deixados no fim pelo editor
+      return s!.replace(/(<(p|div)>(\s|&nbsp;|<br\s*\/?>|<\/?span[^>]*>)*<\/\2>\s*)+$/i, '').trim();
     };
 
     const dados: SalvarJogo = {
@@ -356,7 +455,11 @@ export class EditorJogoComponent {
       },
       review: {
         status: v.review.status!,
-        plataformaId: v.review.plataformaId,
+        plataformaIds: v.review.plataformaIds ?? [],
+        platinadoIds:
+          v.review.status === 'platinado'
+            ? (v.review.platinadoIds ?? []).filter((id) => (v.review.plataformaIds ?? []).includes(id))
+            : [],
         horasJogadas: v.review.horasJogadas,
         dificuldade: vazio(v.review.dificuldade),
         dtInicio: vazio(v.review.dtInicio),
@@ -388,7 +491,8 @@ export class EditorJogoComponent {
       dados.imagens = dados.imagens.filter((i) => i.tipo === 'capa');
       dados.review = {
         ...dados.review,
-        plataformaId: null,
+        plataformaIds: [],
+        platinadoIds: [],
         horasJogadas: null,
         dificuldade: null,
         dtInicio: null,

@@ -41,13 +41,16 @@ const CONSULTAS = {
     LIMIT 12`,
 
   porPlataforma: `
-    SELECT plataforma AS nome,
-           count(*)::int                                                AS quantidade,
-           round(avg(nota_final) FILTER (WHERE publicada))::int         AS media,
-           COALESCE(sum(horas_jogadas), 0)::numeric(10,1)               AS horas
-    FROM vw_jogo_card
-    WHERE plataforma IS NOT NULL AND status NOT IN ('backlog','quero_jogar')
-    GROUP BY plataforma
+    -- jogo jogado em mais de uma plataforma conta em cada uma
+    SELECT p.nome,
+           count(*)::int                                                  AS quantidade,
+           round(avg(v.nota_final) FILTER (WHERE v.publicada))::int       AS media,
+           COALESCE(sum(v.horas_jogadas), 0)::numeric(10,1)               AS horas
+    FROM vw_jogo_card v
+    JOIN review_plataforma rp ON rp.review_id = v.review_id
+    JOIN plataforma p         ON p.id = rp.plataforma_id
+    WHERE v.status NOT IN ('backlog','quero_jogar')
+    GROUP BY p.nome
     ORDER BY quantidade DESC`,
 
   porAnoLancamento: `

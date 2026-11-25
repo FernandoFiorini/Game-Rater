@@ -8,12 +8,15 @@ export interface InfoStatus {
   pendente: boolean;
 }
 
+/** Marcador: em vez de texto, renderiza <app-icone-platina> (troféu de platina em SVG). */
+export const ICONE_PLATINA = '@platina';
+
 export const STATUS: InfoStatus[] = [
   { valor: 'quero_jogar', rotulo: 'Quero jogar', icone: '☆', pendente: true },
   { valor: 'backlog', rotulo: 'Backlog', icone: '▤', pendente: true },
   { valor: 'jogando', rotulo: 'Jogando', icone: '▶', pendente: true },
   { valor: 'zerado', rotulo: 'Zerado', icone: '✓', pendente: false },
-  { valor: 'platinado', rotulo: 'Platinado', icone: '🏆', pendente: false },
+  { valor: 'platinado', rotulo: 'Platinado', icone: ICONE_PLATINA, pendente: false },
   { valor: 'abandonado', rotulo: 'Abandonado', icone: '✕', pendente: false },
 ];
 

@@ -42,7 +42,7 @@ export class HomeComponent {
       (j) =>
         (!termo || normalizar(j.nome).includes(termo) || normalizar(j.desenvolvedora ?? '').includes(termo)) &&
         (!g || j.generoIds.includes(g)) &&
-        (!p || j.plataformaId === p),
+        (!p || j.plataformaIds.includes(p)),
     );
 
     const ordenadores: Record<Ordem, (a: JogoCard, b: JogoCard) => number> = {
